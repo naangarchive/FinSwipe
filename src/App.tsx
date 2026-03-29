@@ -1,9 +1,11 @@
-import { Home } from './pages/Home';
+import Router from './shared/Router';
 
 function App() {
   return (
-    <div className="w-full h-screen overflow-hidden">
-      <Home />
+    <div className="min-h-screen bg-gray-100 flex justify-center">
+      <div className='w-full min-w-80 max-w-107.5 bg-white relative'>
+        <Router />
+      </div>
     </div>
   );
 }

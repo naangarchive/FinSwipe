@@ -7,13 +7,14 @@ import { getSourceName } from "../../utils/format";
 import cardImg from '../../assets/card_img.jpg';
 import clock from '../../assets/ic_clock.svg';
 
-interface SwipeCardProps {
-  data: NewsCardData;
-}
 
-export const SwipeCard = ({ data }: SwipeCardProps) => {
+export const SwipeCard = ({ data }: { data: NewsCardData }) => {
 
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
+  const handleCardClick = () => {
+    navigate(`/detail/${data.id}`);
+  };
+
 
   return (
     <div className='overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200'>
@@ -53,7 +54,7 @@ export const SwipeCard = ({ data }: SwipeCardProps) => {
       {/* 하단 출처 자세히보기 */}
       <div className='flex justify-between items-center p-4 border-t border-solid border-gray-200'>
         <div className="text-xs text-gray-500">{getSourceName(data.source_url)}</div> 
-        <div onClick={() => {navigate("/detail");}} className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
+        <div onClick={handleCardClick} className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
       </div>
     </div>
   );

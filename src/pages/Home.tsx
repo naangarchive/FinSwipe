@@ -83,12 +83,12 @@ export const Home = () => {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-6 space-y-12">
+    <main className="w-full h-full space-y-7">
       {groupedNews.map((group) => (
-        <section key={group.tickerName} className="space-y-4">
+        <section key={group.tickerName} className="space-y-3">
 
-          <div className="flex items-center gap-2">
-            <h3 className="flex items-center gap-2 px-4 h-10 text-sm font-bold text-blue-600 rounded-full bg-blue-600/10">
+          <div className="flex items-center gap-2 px-4">
+            <h3 className="flex items-center shrink-0 gap-2 px-4 h-10 text-sm font-bold text-blue-600 rounded-full bg-blue-600/10">
               <img src={upImg} alt="" />{group.tickerName}
             </h3>
             <div className={`custom-pagination-${group.tickerName} text-sm font-medium text-gray-500`} />
@@ -106,8 +106,8 @@ export const Home = () => {
               slideShadows: false              
             }}
             centeredSlides={true}
-            slidesPerView={1.2}
-            spaceBetween={10}
+            slidesPerView={1.1}
+            spaceBetween={5}
             grabCursor={true}
             pagination={{
               el: `.custom-pagination-${group.tickerName}`,
