@@ -9,9 +9,7 @@ import { SwipeCard } from '../components/briefing/SwipeCard';
 import { supabase } from "../lib/supabase";
 import type { NewsCardData, TickerGroup } from "../types/news";
 import { Header } from "../components/layout/Header"
-
-//이미지
-import upImg from '../assets/ic_up.svg';
+import { Navigation } from "../components/layout/Navigation"
 
 export const Home = () => {
   const [groupedNews, setGroupedNews] = useState<TickerGroup[]>([]);
@@ -91,8 +89,7 @@ export const Home = () => {
         <section key={group.tickerName} className="space-y-3">
 
           <div className="flex items-center gap-2 px-4">
-            <h3 className="flex items-center shrink-0 gap-2 px-4 h-10 text-sm font-bold text-blue-600 rounded-full bg-blue-600/10">
-              <img src={upImg} alt="" />{group.tickerName}
+            <h3 className="flex items-center px-4 h-10 text-sm font-bold text-blue-600 rounded-full bg-blue-600/10">{group.tickerName}
             </h3>
             <div className={`custom-pagination-${group.tickerName} text-sm font-medium text-gray-500`} />
           </div>          
@@ -128,6 +125,7 @@ export const Home = () => {
         </section>
       ))}
     </main>
+    <Navigation />
     </>
   );
 };
