@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase';
 import type { NewsCardData } from '../types/news';
+import { Header } from "../components/layout/Header"
 //유틸리티
 import { getTimeAgo } from "../utils/time";
 import { getSourceName } from "../utils/format";
@@ -29,7 +30,9 @@ export const NewsDetail = () => {
     return <div className="p-10 text-center">로딩 중...</div>;
   }
 
-  return (    
+  return (
+    <>
+    <Header type="detail" />
     <div className="relative px-4 py-6 pb-32 min-h-screen">
       {/* 태그 영역 */}
       <div className="flex flex-wrap gap-2">
@@ -76,5 +79,6 @@ export const NewsDetail = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

@@ -8,6 +8,7 @@ import 'swiper/css/pagination';
 import { SwipeCard } from '../components/briefing/SwipeCard';
 import { supabase } from "../lib/supabase";
 import type { NewsCardData, TickerGroup } from "../types/news";
+import { Header } from "../components/layout/Header"
 
 //이미지
 import upImg from '../assets/ic_up.svg';
@@ -83,7 +84,9 @@ export const Home = () => {
   }
 
   return (
-    <main className="w-full h-full space-y-7">
+    <>
+    <Header type="main" />
+    <main className="w-full h-full py-6 space-y-7">
       {groupedNews.map((group) => (
         <section key={group.tickerName} className="space-y-3">
 
@@ -125,5 +128,6 @@ export const Home = () => {
         </section>
       ))}
     </main>
+    </>
   );
 };

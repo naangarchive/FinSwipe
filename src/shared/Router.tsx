@@ -6,7 +6,9 @@ const Router = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* 메인 홈 */}
         <Route path="/" element={<Home />} />
+        {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={<NewsDetail />} />
       </Routes>
     </BrowserRouter>
