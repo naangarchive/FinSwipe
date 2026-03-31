@@ -4,7 +4,6 @@ import type { NewsCardData } from '../../types/news';
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
 //이미지
-import cardImg from '../../assets/card_img.jpg';
 import clock from '../../assets/ic_clock.svg';
 
 
@@ -19,7 +18,7 @@ export const SwipeCard = ({ data }: { data: NewsCardData }) => {
   return (
     <div className='overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200'>
       {/* 이미지 */}
-      <div className='overflow-hidden h-40 bg-gray-100'><img src={cardImg} alt="" className='w-full h-full object-cover'/></div>
+      <div className='overflow-hidden h-40 bg-gray-100'><img src={data.image_url} alt="" className='w-full h-full object-cover'/></div>
 
       {/* 상단 티커 정보 */}
       <div className='before-empty absolute top-0 left-0 w-full p-3 flex justify-between items-center'>
