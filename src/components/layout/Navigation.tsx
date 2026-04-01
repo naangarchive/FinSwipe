@@ -27,17 +27,20 @@ export const Navigation = ({ showDisclaimer = false }: NavigationProps) => {
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full min-w-80 max-w-107.5 bg-white">
       {showDisclaimer && (
-        <div>투자경고</div>
+        <div className="px-4 py-2 text-xs text-gray-500 text-center border-t border-gray-100">
+          본 서비스는 투자 참고용 정보를 제공하며, 수익성을 보장하지 않습니다. <br/>
+          투자 결정 및 손실에 대한 책임은 투자자 본인에게 있습니다.
+        </div>
       )}
 
-      <nav className="flex items-center justify-around z-50 pb-safe">
+      <nav className="flex items-center justify-around z-50 h-16 px-4 pb-safe border-t border-gray-100">
         {NAV_ITEMS.map(({path, label, on, off}) => {
           const isActive = location.pathname === path;
           return (
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`w-14 h-14 flex items-center justify-center transition-colors ${isActive ? "bg-blue-600/10 rounded-2xl" : ""}`}>
+              className={`w-12.5 h-12.5 flex items-center justify-center transition-colors ${isActive ? "bg-blue-600/10 rounded-2xl" : ""}`}>
               <img src={isActive? on : off} alt={label} />
             </button>
           );

@@ -125,7 +125,7 @@ export const Home = () => {
         </section>
       ))}
     </main>
-    <Navigation />
+    <Navigation showDisclaimer={true}/>
     </>
   );
 };
