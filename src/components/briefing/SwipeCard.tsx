@@ -49,7 +49,7 @@ export const SwipeCard = ({ data }: { data: NewsCardData }) => {
           <span key={index} className='text-xs text-gray-400'>{cate}</span>
         ))}  
         </div>
-        <div className='text-gray-900 text-4 font-bold'>{data.headline}</div>
+        <div className='text-gray-900 text-4 font-bold line-clamp-2'>{data.headline}</div>
         {data.summary_3lines.map((line, index) => (
           <div key={index} className="text-sm text-gray-600 line-clamp-2">{line}</div>
         ))}
