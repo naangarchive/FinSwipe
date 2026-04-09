@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { signInWithGoogle } from '../lib/supabase';
 //컴포넌트
 import { Input } from "../components/common/input";
 import { Button } from "../components/common/button";
@@ -11,7 +12,7 @@ import Google from "../assets/ic_google.svg";
 
 export const Login = () => {
 
-  // const navigate = useNavigate();
+  
 
   return (
     <>
@@ -52,7 +53,8 @@ export const Login = () => {
             <div className="grow h-px bg-gray-200"></div>
           </div>
           <div className="flex justify-center">
-            <button className="flex items-center justify-center gap-4 w-full h-14 text-base font-semibold text-gray-700 border rounded-xl border-gray-200">
+            <button onClick={() => signInWithGoogle()}
+              className="flex items-center justify-center gap-4 w-full h-14 text-base font-semibold text-gray-700 border rounded-xl border-gray-200">
               <img src={Google} alt="" />
               Google 간편 로그인
             </button>
