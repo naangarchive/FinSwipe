@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { TickerInfo } from "../types/tickers";
+import type { TickerInfo, TickerNameInfo } from "../types/tickers";
 
 export const getUniqueTickersFromNews = async (): Promise<TickerInfo[]> => {
   //1. 모든 뉴스에서 tickers, categorys 컬럼 가져오기
@@ -20,5 +20,21 @@ export const getUniqueTickersFromNews = async (): Promise<TickerInfo[]> => {
     symbol: symbol,
     name: symbol,
     categories: ["technology, markets"], //기본 카테고리 지정
+  }));
+};
+
+// 관심종목 설정
+export const getTickerNames = async (): Promise<TickerNameInfo[]> => {
+  const { data, error } = await supabase
+    .from('ticker_names')
+    .select('ticker, corp, ko')
+    .order('ticker', { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    symbol: row.ticker,
+    name: row.ko,
+    corp: row.corp,
   }));
 };

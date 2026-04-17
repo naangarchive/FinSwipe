@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { getUniqueTickersFromNews } from "../api/tickerService";
-import type { TickerInfo } from "../types/tickers";
+import { getTickerNames } from "../api/tickerService";
+import type { TickerNameInfo } from "../types/tickers";
 import { StockCard } from "../components/setup/StockCard";
 import { Navigation } from "../components/layout/Navigation"
 import { Input } from "../components/common/input"
@@ -10,7 +10,7 @@ import search from "../assets/ic_search.svg";
 
 export const Like = () => {
 
-  const [stocks, setStocks] = useState<TickerInfo[]>([]);
+  const [stocks, setStocks] = useState<TickerNameInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,7 +18,7 @@ export const Like = () => {
   //페이지 진입 시 티커 리스트 렌더링
   useEffect(() => {    
     const loadTickers = async () => {
-      const data = await getUniqueTickersFromNews();
+      const data = await getTickerNames();
       setStocks(data);
       setLoading(false);
     };
@@ -79,7 +79,7 @@ export const Like = () => {
           key={stock.symbol}
           ticker={stock.symbol}
           name={stock.name}
-          category={stock.categories}
+          corp={stock.corp}
           isSelected={selectedTickers.includes(stock.symbol)}
           onToggle={() => toggleStock(stock.symbol)}
         />  
