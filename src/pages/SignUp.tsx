@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { validateEmail, validatePassword, validatePasswordMatch, validatePhone } from "../utils/validation";
+import { validateEmail, validatePassword, validatePasswordMatch, validateLoginId } from "../utils/validation";
 import { supabase } from '../lib/supabase';
 //컴포넌트
 import { Header } from "../components/layout/Header"
@@ -10,72 +10,132 @@ import { Checkbox } from "../components/common/checkbox";
 import { NoticeBox } from "../components/common/NoticeBox";
 // 이미지
 import mailIcon from "../assets/ic_email.svg";
-import tellIcon from "../assets/ic_tell.svg";
 import myIcon from "../assets/ic_my.svg";
 import pwIcon from "../assets/ic_password.svg";
 
 export const SignUp = () => {
   const navigate = useNavigate();
 
-  // 1. 입력값 상태 관리
+  // 입력값 상태 관리
   const [formData, setFormData] = useState({
     email: "",
-    phone: "",
+    loginId: "",
     nickname: "",
     password: "",
     confirmPassword: "",
   });
 
-  // 2. 체크박스 상태 관리
+  const [isEmailChecked, setIsEmailChecked] = useState(false);
+  const [isIdChecked, setIsIdChecked] = useState(false);
   const [isTermsChecked, setTermsChecked] = useState(false);
   const [isDisclaimerChecked, setDisclaimerChecked] = useState(false);
 
-  // 3. 입력 핸들러
+  // 이메일 중복 검사
+  const handleEmailCheck = async () => {
+    if (!formData.email) return alert("이메일을 입력해주세요.");
+    if (!validateEmail(formData.email)) return alert("이메일 형식이 올바르지 않습니다.");
+
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .eq('email', formData.email)
+      .maybeSingle();
+
+    if (data) {
+      alert("이미 가입된 이메일입니다.");
+      setIsEmailChecked(false);
+    } else {
+      alert("사용 가능한 이메일입니다.");
+      setIsEmailChecked(true);
+    }
+  };
+
+  // 아이디 중복 검사
+  const handleIdCheck = async () => {
+    if (!formData.loginId || !validateLoginId(formData.loginId)) {
+      return alert("아이디를 8자 이상 입력해주세요.");
+    }
+
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('login_id')
+      .eq('login_id', formData.loginId)
+      .maybeSingle();
+
+    if (data) {
+      alert("이미 사용 중인 아이디입니다.");
+      setIsIdChecked(false);
+    } else {
+      alert("사용 가능한 아이디입니다.");
+      setIsIdChecked(true);
+    }
+  };
+
+  // 입력 핸들러
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "email") setIsEmailChecked(false);
+    if (name === "loginId") setIsIdChecked(false);
   };
 
-  // 4. 유효성 검사
-  const isEmailValid = validateEmail(formData.email);
-  const isPhoneValid = validatePhone(formData.phone);
+  // 유효성 검사
   const isPasswordValid = validatePassword(formData.password);
   const isPasswordMatch = validatePasswordMatch(formData.password, formData.confirmPassword);
-  const isNicknameValid = formData.nickname.trim().length >= 2;
   const isAllChecked = isTermsChecked && isDisclaimerChecked;
 
-  // 5. 최종 가입
-  const canSubmit = isEmailValid && isPhoneValid && isPasswordValid && isPasswordMatch && isNicknameValid &&isAllChecked;
+  // 최종 가입
+  const canSubmit = 
+    isEmailChecked &&
+    isIdChecked &&
+    isPasswordValid && 
+    isPasswordMatch &&     
+    isAllChecked;
 
-  // 6. 회원가입 실행
+  // 회원가입 실행
   const handleSignUp = async () => {
     if (!canSubmit) return;
-      
     try {
-      // Step 1: Auth 계정 생성
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            display_name: formData.nickname, // 대시보드 Display name에 표시됨
-            full_name: formData.nickname,
-            phone_number: formData.phone,    // metadata 안에 저장됨
-            nickname: formData.nickname,     // metadata 안에 저장됨
+            login_id: formData.loginId,
+            nickname: formData.nickname,
           }
         }
       });
 
-      if(authError) throw authError;
-      
-      if (authData.user) {
-        alert("가입 성공! 로그인 화면으로 이동합니다.");
-        navigate('/Login'); 
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          alert("이미 가입된 이메일입니다. 구글 로그인을 이용해주세요.");
+        } else {
+          alert(authError.message);
+        }
+        return;
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) alert(error.message);
+
+      if (authData.user) {
+        const { error: profileError } = await supabase.from('user_profiles').insert([{
+          id: authData.user.id,
+          login_id: formData.loginId,
+          email: formData.email,
+          nickname: formData.nickname,
+          tickers: [],
+        }]);
+
+        if (profileError) throw profileError;
+
+        alert(`${formData.email}로 인증 메일이 발송되었습니다.\n메일함을 확인하고 링크를 클릭해주세요.`);
+        navigate('/Login');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
     }
-  }
+  };
 
   //전체 동의 이벤트 핸들러
   const handleAllCheck = (checked:boolean) => {
@@ -111,35 +171,32 @@ export const SignUp = () => {
               onChange={handleChange}
               placeholder="example@email.com"
               icon={mailIcon}
+              disabled={isEmailChecked}
             />
-            {/* <Button variant="outline" size="md" disabled>인증번호 받기</Button> */}
+            <Button variant="outline" size="md" onClick={handleEmailCheck} disabled={isEmailChecked}>
+              {isEmailChecked ? "확인 완료" : "중복확인"}
+            </Button>
           </div>
           <div className="flex flex-col gap-2">
             <Input 
-              label="휴대폰 번호"
-              name="phone"
-              value={formData.phone}
+              label="아이디"
+              name="loginId"
+              value={formData.loginId}
               onChange={handleChange}
-              placeholder="01012345678"
-              icon={tellIcon}
-            />
-            {/* <Button variant="outline" size="md" disabled>인증번호 받기</Button> */}
-          </div>          
-          <Input 
-            label="닉네임"
-            name="nickname"
-            value={formData.nickname}
-            onChange={handleChange}
-            placeholder="사용하실 닉네임을 입력하세요"
-            icon={myIcon}
-          />
+              placeholder="8자 이상 입력"
+              icon={myIcon}
+            />          
+            <Button variant="outline" size="md" onClick={handleIdCheck} disabled={isIdChecked}>
+              {isIdChecked ? "확인 완료" : "중복확인"}
+            </Button>
+          </div>
           <Input 
             label="비밀번호"
             name="password"
             value={formData.password}
             onChange={handleChange}
             isPassword
-            placeholder="비밀번호 (8자 이상)"
+            placeholder="8자 이상 입력"
             icon={pwIcon}
           />
           <Input 
@@ -150,6 +207,14 @@ export const SignUp = () => {
             isPassword
             placeholder="비밀번호를 다시 입력하세요"
             icon={pwIcon}
+          />         
+          <Input 
+            label="닉네임(선택)"
+            name="nickname"
+            value={formData.nickname}
+            onChange={handleChange}
+            placeholder="사용하실 닉네임을 입력하세요"
+            icon={myIcon}
           />
         </div>
 
