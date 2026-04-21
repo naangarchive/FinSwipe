@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { NewsCardData } from '../../types/news';
 //유틸리티
 import { getTimeAgo } from "../../utils/time";
@@ -9,6 +10,11 @@ import defaultThumb from "../../assets/thumb_img.jpg";
 
 export const SwipeCard = ({ data }: { data: NewsCardData }) => {
 
+  const navigate = useNavigate();
+    const handleCardClick = () => {
+      navigate(`/detail/${data.id}`);
+  };
+
   return (
     <div className='overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200'>
       {/* 이미지 */}
@@ -19,7 +25,9 @@ export const SwipeCard = ({ data }: { data: NewsCardData }) => {
       {/* 상단 티커 정보 */}
       <div className='before-empty absolute top-0 left-0 w-full p-3 flex justify-between items-center'>
         <div className="relative flex items-center gap-2">
-          <span className='h-5 px-2.5 rounded-full bg-white/90 leading-5 text-xs font-semibold text-gray-900'>{data.tickers}</span>
+          <span className='h-5 px-2.5 rounded-full bg-white/90 leading-5 text-xs font-semibold text-gray-900'>
+            {data.ticker_names?.[0]?.ko ?? data.tickers[0]}
+          </span>
           <span className={`w-2 h-2 rounded-full text-[0px] ${
             data.sentiment_label === 'positive' ? 'bg-[#22C55E]' : 
             data.sentiment_label === 'negative' ? 'bg-[#EF4444]' : 
@@ -34,7 +42,7 @@ export const SwipeCard = ({ data }: { data: NewsCardData }) => {
       </div>
 
       {/* 중앙 텍스트 내용 */}
-      <div className='flex flex-col gap-2 h-63 p-4'>
+      <div className='flex flex-col gap-2 h-33 p-4'>
         <div className="flex items-center gap-2">
           <span className={`px-2 h-5 rounded-sm text-sm font-medium ${
             data.sentiment_label === 'positive' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 
@@ -49,17 +57,15 @@ export const SwipeCard = ({ data }: { data: NewsCardData }) => {
           <span key={index} className='text-xs text-gray-400'>{cate}</span>
         ))}  
         </div>
-        <div className='text-gray-900 text-4 font-bold line-clamp-2'>{data.headline}</div>
-        {data.summary_3lines.map((line, index) => (
-          <div key={index} className="text-sm text-gray-600 line-clamp-2">{line}</div>
-        ))}
+        <div className='text-gray-900 text-4 font-bold line-clamp-1'>{data.headline_ko}</div>
+        <div className="text-sm text-gray-600 line-clamp-2">{data.summary_3lines_ko[0]}</div>
         
       </div>
 
       {/* 하단 출처 자세히보기 */}
       <div className='flex justify-between items-center p-4 border-t border-solid border-gray-200'>
         <div className="text-xs text-gray-500">{getSourceName(data.source_url)}</div> 
-        <div onClick={() => window.open(data.source_url, '_blank')} className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
+        <div onClick={handleCardClick} className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
       </div>
     </div>
   );

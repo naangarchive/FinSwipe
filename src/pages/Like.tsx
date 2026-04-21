@@ -34,17 +34,17 @@ export const Like = () => {
     const term = searchTerm.toLowerCase();
     return stocks.filter(
       (stock) =>
-        stock.symbol.toLowerCase().includes(term) ||
-        stock.name.toLowerCase().includes(term)
+        stock.ticker.toLowerCase().includes(term) ||
+        stock.ko.toLowerCase().includes(term)
     );
   }, [searchTerm, stocks]);
 
   // 종목 선택 Toggle
-  const toggleStock = (symbol: string) => {
+  const toggleStock = (ticker: string) => {
     setSelectedTickers((prev) =>
-      prev.includes(symbol)
-      ? prev.filter((t => t !== symbol))
-      : [...prev, symbol]
+      prev.includes(ticker)
+      ? prev.filter((t => t !== ticker))
+      : [...prev, ticker]
     );
   };
 
@@ -97,12 +97,12 @@ export const Like = () => {
       {filteredStocks.length > 0 ? (
         filteredStocks.map((stock) => (
           <StockCard 
-          key={stock.symbol}
-          ticker={stock.symbol}
-          name={stock.name}
+          key={stock.ticker}
+          ticker={stock.ticker}
+          name={stock.ko}
           corp={stock.corp}
-          isSelected={selectedTickers.includes(stock.symbol)}
-          onToggle={() => toggleStock(stock.symbol)}
+          isSelected={selectedTickers.includes(stock.ticker)}
+          onToggle={() => toggleStock(stock.ticker)}
         />  
         ))
       ): (

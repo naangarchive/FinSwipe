@@ -1,11 +1,14 @@
+import type { TickerNameInfo } from './tickers';
+
 //뉴스
 export interface NewsCardData {
   id: string;                // uuid
-  headline: string;          // 제목
+  headline_ko: string;          // 제목
   summary: string;           // 전체 요약 텍스트
-  summary_3lines: string[];  // jsonb (3줄 요약 배열)
+  summary_3lines_ko: string[];  // jsonb (3줄 요약 배열)
   source_url: string;        // 원문 링크
-  tickers: string[];          // 관련 종목 (배열)
+  tickers: string[];         // 관련 종목 (배열)
+  ticker_names: TickerNameInfo[];
   sentiment_label: string;
   sentiment_score: number;
   published_at: string;      // 날짜
