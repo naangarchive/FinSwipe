@@ -126,7 +126,11 @@ export const Home = () => {
           >
             {group.articles.map((article: NewsCardData) => (
               <SwiperSlide key={`${group.tickerName}-${article.id}`}>
-                <SwipeCard data={article} />
+                <SwipeCard 
+                  data={article}
+                  groupTicker={group.tickerName}
+                  articles={group.articles}
+                />
               </SwiperSlide>
             ))}
             

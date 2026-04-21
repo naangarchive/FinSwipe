@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase';
 import { Home } from '../pages/Home';
+import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
 import { SignUp } from "../pages/SignUp.tsx";
 import { FindEmail } from "../pages/FindEmail.tsx";
@@ -75,6 +76,8 @@ const Router = () => {
                 : <Home />
           } 
         />
+        {/* 뉴스 상세 */}
+        <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
