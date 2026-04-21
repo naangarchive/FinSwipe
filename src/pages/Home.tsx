@@ -19,6 +19,19 @@ export const Home = () => {
     const fetchNews = async () => {
       try {
         setIsLoading(true);
+
+        // 유저 관심종목 가져오기
+        const { data: {session} } = await supabase.auth.getSession();
+        const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("tickers")
+        .eq("id", session!.user.id )
+        .maybeSingle();
+
+        const userTickers: string[] = profile?.tickers ?? [];
+        
+
+        // 뉴스 가져오기
         const { data, error } = await supabase
           .from('news_articles')
           .select('*')
@@ -28,7 +41,7 @@ export const Home = () => {
 
         const rawData = data as NewsCardData[];
 
-        // 1. 티커별 그룹화
+        // 티커별 그룹화
         const groups: { [key: string]: NewsCardData[] } = {};
 
         rawData.forEach((article) => {          
@@ -37,6 +50,8 @@ export const Home = () => {
           : ['NULL'];
 
           tickerList.forEach((t) => {
+            if (!userTickers.includes(t)) return;
+
             if (!groups[t]) {
               groups[t] = [];
             }
@@ -46,17 +61,12 @@ export const Home = () => {
           });
         });
 
-        // 2. 객체 → 배열로 변환 및 정렬
+        // 객체 → 배열로 변환 및 정렬
         const formattedGroups = Object.keys(groups)
         .map((name) => ({
           tickerName: name,
           articles: groups[name],
         }))
-        .sort((a, b) => {          
-          if (a.tickerName === 'NULL') return 1; //NULL 맨뒤로
-          if (b.tickerName === 'NULL') return -1;
-          return a.tickerName.localeCompare(b.tickerName);
-        });
 
         setGroupedNews(formattedGroups);
       } catch (error) {

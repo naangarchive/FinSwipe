@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 import { getTickerNames } from "../api/tickerService";
 import type { TickerNameInfo } from "../types/tickers";
 import { StockCard } from "../components/setup/StockCard";
@@ -9,7 +11,8 @@ import { Button } from "../components/common/button"
 import search from "../assets/ic_search.svg";
 
 export const Like = () => {
-
+  
+  const navigate = useNavigate();
   const [stocks, setStocks] = useState<TickerNameInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
@@ -47,6 +50,24 @@ export const Like = () => {
 
   // 모두 해제
   const clearAll = () => setSelectedTickers([]);
+
+  //데이터 저장
+  const handleSave = async () => {
+    const { data: {session} } = await supabase.auth.getSession();
+    if(!session) return alert("로그인이 필요합니다.");
+
+    const { error } = await supabase
+    .from('user_profiles')
+    .update({tickers: selectedTickers})
+    .eq('id', session.user.id);
+
+    if(error){
+      alert("저장에 실패했습니다.");
+    }else {
+      alert("관심 종목이 저장되었습니다.");
+      navigate("/");
+    }
+  };
 
   if (loading) return <div className="p-10 text-center">종목 데이터를 불러오는 중...</div>;
   
@@ -91,7 +112,7 @@ export const Like = () => {
 
     {/* 하단바 */}
     <div className="fixed bottom-16 z-50 left-1/2 -translate-x-1/2 w-full min-w-80 max-w-107.5 p-4 bg-white border-t border-gray-100">
-      <Button variant="primary" disabled={selectedTickers.length === 0}>
+      <Button variant="primary" disabled={selectedTickers.length === 0} onClick={handleSave}>
         {selectedTickers.length}개 종목 저장하기
       </Button>
     </div>
