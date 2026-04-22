@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
-import type { TickerInfo, TickerNameInfo } from "../types/tickers";
+import type { TickerNameInfo } from "../types/tickers";
 
-export const getUniqueTickersFromNews = async (): Promise<TickerInfo[]> => {
+export const getUniqueTickersFromNews = async (): Promise<any[]> => {
   //1. 모든 뉴스에서 tickers, categorys 컬럼 가져오기
   const { data, error } = await supabase
     .from('news_articles')
@@ -33,8 +33,8 @@ export const getTickerNames = async (): Promise<TickerNameInfo[]> => {
   if (error || !data) return [];
 
   return data.map((row) => ({
-    symbol: row.ticker,
-    name: row.ko,
+    ticker: row.ticker,
+    ko: row.ko,
     corp: row.corp,
   }));
 };
