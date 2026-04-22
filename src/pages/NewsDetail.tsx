@@ -47,6 +47,7 @@ export const NewsDetail = () => {
       navigate(-1);
     }
   };
+  
 
   return (
     <>
@@ -94,33 +95,26 @@ export const NewsDetail = () => {
         </div>
         
         <ul className="flex flex-col gap-3">
-          {news.summary_3lines_ko?.map((line, index) => {
-            const highlight = news.xai_ko?.highlights[index];
-            const excerpt = highlight?.excerpt;
+      {news.xai_ko?.highlights.slice(0, 3).map((highlight, index) => {
+        const { excerpt, start_char, end_char } = highlight;
+        const before = excerpt.slice(0, start_char);
+        const highlighted = excerpt.slice(start_char, end_char);
+        const after = excerpt.slice(end_char);
 
-            const renderLine = () => {
-              if (!excerpt) return <span>{line}</span>;
-              const parts = line.split(excerpt);
-              if (parts.length < 2) return <span>{line}</span>;
-              return (
-                <>
-                  {parts[0]}
-                  <mark className="bg-yellow-200 text-gray-900">{excerpt}</mark>
-                  {parts[1]}
-                </>
-              );
-            };
-
-            return (
-              <li key={index} className="flex gap-3 p-4 border border-blue-100 rounded-[14px]">
-                <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
-                  {index + 1}
-                </span>
-                <span className="text-sm text-gray-700 leading-relaxed">{renderLine()}</span>
-              </li>
-            );
-          })}
-        </ul>
+        return (
+          <li key={index} className="flex gap-3 p-4 border border-blue-100 rounded-[14px]">
+            <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
+              {index + 1}
+            </span>
+            <span className="text-sm text-gray-700 leading-relaxed">
+              {before}
+              <mark className="bg-yellow-200 text-gray-900">{highlighted}</mark>
+              {after}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
       </div>
 
       {/* 본문 요약영역 */}
