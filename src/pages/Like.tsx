@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { searchTickerNames } from "../api/tickerService";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { getTickerNames } from "../api/tickerService";
 import type { TickerNameInfo } from "../types/tickers";
 import { StockCard } from "../components/setup/StockCard";
 import { Navigation } from "../components/layout/Navigation"
@@ -14,30 +14,17 @@ export const Like = () => {
   
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<TickerNameInfo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  //페이지 진입 시 티커 리스트 렌더링
-  useEffect(() => {    
-    const loadTickers = async () => {
-      const data = await getTickerNames();
+  // 페이지 진입 시 초기 50개
+  useEffect(() => {
+    const loadInitial = async () => {
+      const data = await searchTickerNames("");
       setStocks(data);
-      setLoading(false);
     };
-
-    loadTickers();
+    loadInitial();
   }, []);
-
-  // 검색 필터링
-  const filteredStocks = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return stocks.filter(
-      (stock) =>
-        stock.ticker.toLowerCase().includes(term) ||
-        stock.ko.toLowerCase().includes(term)
-    );
-  }, [searchTerm, stocks]);
 
   // 종목 선택 Toggle
   const toggleStock = (ticker: string) => {
@@ -50,6 +37,12 @@ export const Like = () => {
 
   // 모두 해제
   const clearAll = () => setSelectedTickers([]);
+
+  //검색
+  const handleSearch = async () => {
+    const data = await searchTickerNames(searchTerm);
+    setStocks(data);
+  };
 
   //데이터 저장
   const handleSave = async () => {
@@ -67,13 +60,10 @@ export const Like = () => {
       alert("관심 종목이 저장되었습니다.");
       navigate("/");
     }
-  };
-
-  if (loading) return <div className="p-10 text-center">종목 데이터를 불러오는 중...</div>;
+  };  
   
   return(
     <>
-
     {/* 제목, 검색 */}
     <div className="sticky top-0 flex flex-col gap-4 bg-white p-4 pt-8">
       <div className="flex flex-col gap-1">
@@ -85,6 +75,7 @@ export const Like = () => {
         icon={search}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
       />
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">선택된 종목: <span className="font-semibold text-blue-600">{selectedTickers.length}개</span></div>
@@ -94,8 +85,8 @@ export const Like = () => {
 
     {/* 종목 리스트 */}
     <div className="space-y-2 bg-gray-50 p-4 pb-40">
-      {filteredStocks.length > 0 ? (
-        filteredStocks.map((stock) => (
+      {stocks.length > 0 ? (
+        stocks.map((stock) => (
           <StockCard 
           key={stock.ticker}
           ticker={stock.ticker}
@@ -106,7 +97,9 @@ export const Like = () => {
         />  
         ))
       ): (
-        <div className="py-20 text-center text-gray-400">검색 결과가 없습니다.</div>
+        <div className="py-20 text-center text-gray-400">
+          {searchTerm ? "검색 결과가 없습니다." : "종목명 또는 티커를 검색해주세요."}
+        </div>
       )}     
     </div>
 
