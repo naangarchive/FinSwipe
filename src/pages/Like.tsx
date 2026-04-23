@@ -17,12 +17,26 @@ export const Like = () => {
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 페이지 진입 시 초기 50개
   useEffect(() => {
     const loadInitial = async () => {
-      const data = await searchTickerNames("");
-      setStocks(data);
-    };
+    // 초기 50개 로드
+    const stocks = await searchTickerNames("");
+    setStocks(stocks);
+
+    // 기존 저장된 티커 불러오기
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('tickers')
+      .eq('id', session.user.id)
+      .single();
+
+    if (data?.tickers) {
+      setSelectedTickers(data.tickers);
+    }
+  };
     loadInitial();
   }, []);
 

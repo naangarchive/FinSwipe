@@ -63,7 +63,7 @@ export const SwipeCard = ({ data, groupTicker, articles  }: {
           ))}  
         </div>
         <div className='text-gray-900 text-4 font-bold line-clamp-1'>{data.headline_ko}</div>
-        <div className="text-sm text-gray-600 line-clamp-2">{data.summary_3lines_ko[0]}</div>
+        <div className="text-sm text-gray-600 line-clamp-2">{data.summary_3lines_ko?.[0] ?? ""}</div>
         
       </div>
 
