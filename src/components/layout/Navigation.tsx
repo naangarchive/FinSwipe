@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { path: "/",       label: "홈",   on: homeOn,   off: homeOff   , activePaths: ["/"] },
   { path: "/search", label: "검색", on: searchOn, off: searchOff , activePaths: ["/search"] },
   { path: "/like",   label: "관심", on: likeOn,   off: likeOff   , activePaths: ["/like"] },
-  { path: "/my",     label: "마이", on: myOn,     off: myOff     , activePaths: ["/my", "/profileEdit"] },
+  { path: "/my",     label: "마이", on: myOn,     off: myOff     , activePaths: ["/my", "/profileEdit", "/settings"] },
 ];
 
 interface NavigationProps {
