@@ -81,21 +81,17 @@ export const Home = () => {
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
   }
-
-  if (groupedNews.length === 0) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen space-y-2">
-        <p className="text-gray-500 font-semibold text-lg">표시할 뉴스가 없습니다.</p>
-        <p className="text-gray-400 text-sm">DB에 데이터가 있는지 확인해 주세요.</p>
-      </div>
-    );
-  }
-
   return (
     <>
     <Header type="main" />
     <main className="w-full h-full py-6 pb-20 space-y-7">
-      {groupedNews.map((group) => (
+      {groupedNews.length === 0 ? (
+        <div className="flex flex-col justify-center items-center pt-20 space-y-2">
+          <p className="text-gray-500 font-semibold text-lg">표시할 뉴스가 없습니다.</p>
+          <p className="text-gray-400 text-sm">DB에 데이터가 있는지 확인해 주세요.</p>
+        </div>
+      ) : (
+        groupedNews.map((group) => (
         <section key={group.tickerName} className="space-y-3">
 
           <div className="flex items-center gap-2 px-4">
@@ -137,7 +133,9 @@ export const Home = () => {
           </Swiper>
 
         </section>
-      ))}
+      ))
+      )}
+      
     </main>
     <Navigation showDisclaimer={true}/>
     </>
