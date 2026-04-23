@@ -40,6 +40,15 @@ export const Like = () => {
     loadInitial();
   }, []);
 
+  // 검색어 바뀔때마다 검색
+  useEffect(() => {    
+    const search = async () => {
+      const data = await searchTickerNames(searchTerm);
+      setStocks(data);
+    };
+    search();
+  }, [searchTerm]);
+
   // 종목 선택 Toggle
   const toggleStock = (ticker: string) => {
     setSelectedTickers((prev) =>
@@ -51,12 +60,6 @@ export const Like = () => {
 
   // 모두 해제
   const clearAll = () => setSelectedTickers([]);
-
-  //검색
-  const handleSearch = async () => {
-    const data = await searchTickerNames(searchTerm);
-    setStocks(data);
-  };
 
   //데이터 저장
   const handleSave = async () => {
@@ -89,7 +92,6 @@ export const Like = () => {
         icon={search}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
       />
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">선택된 종목: <span className="font-semibold text-blue-600">{selectedTickers.length}개</span></div>
