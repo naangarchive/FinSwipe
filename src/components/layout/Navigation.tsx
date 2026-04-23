@@ -10,10 +10,10 @@ import myOff from '../../assets/ic_mypage.svg';
 import myOn from '../../assets/ic_mypage_on.svg';
 
 const NAV_ITEMS = [
-  { path: "/",       label: "홈",   on: homeOn,   off: homeOff   },
-  { path: "/search", label: "검색", on: searchOn, off: searchOff },
-  { path: "/like",   label: "관심", on: likeOn,   off: likeOff   },
-  { path: "/my",     label: "마이", on: myOn,     off: myOff     },
+  { path: "/",       label: "홈",   on: homeOn,   off: homeOff   , activePaths: ["/"] },
+  { path: "/search", label: "검색", on: searchOn, off: searchOff , activePaths: ["/search"] },
+  { path: "/like",   label: "관심", on: likeOn,   off: likeOff   , activePaths: ["/like"] },
+  { path: "/my",     label: "마이", on: myOn,     off: myOff     , activePaths: ["/my", "/profileEdit"] },
 ];
 
 interface NavigationProps {
@@ -34,8 +34,8 @@ export const Navigation = ({ showDisclaimer = false }: NavigationProps) => {
       )}
 
       <nav className="flex items-center justify-around z-50 h-16 px-4 pb-safe border-t border-gray-100">
-        {NAV_ITEMS.map(({path, label, on, off}) => {
-          const isActive = location.pathname === path;
+        {NAV_ITEMS.map(({path, label, on, off, activePaths}) => {
+          const isActive = activePaths.includes(location.pathname);
           return (
             <button
               key={path}

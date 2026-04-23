@@ -9,6 +9,7 @@ import { FindEmail } from "../pages/FindEmail.tsx";
 import { FindPassword } from "../pages/FindPassword.tsx";
 import { Like } from "../pages/Like.tsx";
 import { My } from "../pages/My.tsx";
+import { ProfileEdit } from "../pages/ProfileEdit.tsx";
 
 const Router = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -80,6 +81,7 @@ const Router = () => {
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
         <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />
+        <Route path="/profileEdit" element={isLoggedIn ? <ProfileEdit /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
