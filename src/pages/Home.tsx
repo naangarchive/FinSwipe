@@ -94,7 +94,7 @@ export const Home = () => {
   return (
     <>
     <Header type="main" />
-    <main className="w-full h-full py-6 space-y-7">
+    <main className="w-full h-full py-6 pb-20 space-y-7">
       {groupedNews.map((group) => (
         <section key={group.tickerName} className="space-y-3">
 
