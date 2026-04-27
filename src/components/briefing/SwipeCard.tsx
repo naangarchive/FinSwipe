@@ -21,7 +21,9 @@ export const SwipeCard = ({ data, groupTicker, articles  }: {
   };
 
   return (
-    <div className='overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200'>
+    <div
+      onClick={handleCardClick}
+      className='overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200'>
       {/* 이미지 */}
       <div className='overflow-hidden h-40 bg-gray-100'>
         <img src={data.image_url || defaultThumb} alt="" className='w-full h-full object-cover'/>
@@ -70,7 +72,7 @@ export const SwipeCard = ({ data, groupTicker, articles  }: {
       {/* 하단 출처 자세히보기 */}
       <div className='flex justify-between items-center p-4 border-t border-solid border-gray-200'>
         <div className="text-xs text-gray-500">{getSourceName(data.source_url)}</div> 
-        <div onClick={handleCardClick} className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
+        <div className='px-3 py-1.5 text-xs text-blue-600 font-semibold cursor-pointer'>자세히 보기 →</div>
       </div>
     </div>
   );

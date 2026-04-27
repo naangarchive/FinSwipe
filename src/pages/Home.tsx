@@ -131,6 +131,7 @@ export const Home = () => {
             slidesPerView={1.1}
             spaceBetween={5}
             grabCursor={true}
+            threshold={10}
             pagination={{
               el: `.custom-pagination-${group.tickerName}`,
               type: 'fraction'
