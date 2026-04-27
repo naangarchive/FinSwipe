@@ -14,6 +14,7 @@ import { Navigation } from "../components/layout/Navigation"
 export const Home = () => {
   const [groupedNews, setGroupedNews] = useState<TickerGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortType, setSortType] = useState<'time' | 'power'>('time');
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -84,16 +85,31 @@ export const Home = () => {
   return (
     <>
     <Header type="main" />
-    <main className="w-full h-full py-6 pb-20 space-y-7">
+    <main className="w-full h-full py-6 pb-20 space-y-7 relative">      
+      <div className="absolute right-4 top-6 flex p-1 rounded-[14px] bg-gray-100">
+        <button 
+          onClick={() => setSortType('time')}
+          className={`w-18 h-9 rounded-[10px] font-semibold text-sm ${
+            sortType === 'time'
+            ? 'bg-white text-gray-900'
+            : 'text-gray-500'
+          }`}>시간순</button>
+        <button 
+          onClick={() => setSortType('power')}
+          className={`w-18 h-9 rounded-[10px] font-semibold text-sm ${
+            sortType === 'power'
+            ? 'bg-white text-gray-900'
+            : 'text-gray-500'
+          }`}>파워순</button>
+      </div>
       {groupedNews.length === 0 ? (
         <div className="flex flex-col justify-center items-center pt-20 space-y-2">
           <p className="text-gray-500 font-semibold text-lg">표시할 뉴스가 없습니다.</p>
           <p className="text-gray-400 text-sm">DB에 데이터가 있는지 확인해 주세요.</p>
         </div>
-      ) : (
+      ) : (        
         groupedNews.map((group) => (
-        <section key={group.tickerName} className="space-y-3">
-
+        <section key={group.tickerName} className="space-y-3">          
           <div className="flex items-center gap-2 px-4">
             <h3 className="flex items-center px-4 h-10 text-sm font-bold text-blue-600 rounded-full bg-blue-600/10">{group.tickerName}
             </h3>
