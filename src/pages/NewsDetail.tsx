@@ -15,6 +15,7 @@ export const NewsDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [news, setNews] = useState<NewsCardData | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const location = useLocation();
   const groupTicker = location.state?.groupTicker;
@@ -44,13 +45,23 @@ export const NewsDetail = () => {
     if (next) {
       navigate(`/detail/${next.id}`, { state: { groupTicker, articles } });
     } else {
-      navigate(-1);
+      setShowToast(true);
+      setTimeout(() => {
+      setShowToast(false);
+      navigate('/');
+    }, 2000);
     }
   };
   
 
   return (
     <>
+    {/* 토스트 팝업 */}
+    {showToast && (
+      <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-gray-900 text-white text-sm font-medium rounded-full shadow-lg animate-fade-in">
+        오늘의 주요 뉴스를 모두 확인하셨습니다 🎉
+      </div>
+    )}
     <Header type="detail" />
     <div className='overflow-hidden relative h-68 bg-gray-100'>        
       {/* 이미지 */}
