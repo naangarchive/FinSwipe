@@ -34,6 +34,13 @@ export const NewsDetail = () => {
       if (data) setNews(data);
     }
     fetchDetail();
+
+    if (id) {
+      const read = JSON.parse(localStorage.getItem('readNews') ?? '[]');
+      if (!read.includes(id)) {
+        localStorage.setItem('readNews', JSON.stringify([...read, id]));
+      }
+    }
   }, [id]);
 
   if (!news) {
