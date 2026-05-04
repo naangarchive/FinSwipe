@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
 //컴포넌트
 import { Header } from "../components/layout/Header"
 import { Input } from "../components/common/input"
@@ -11,23 +10,39 @@ export const FindEmail = () => {
   const [username, setUsername] = useState("");
   const [foundEmail, setFoundEmail] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFindEmail = async () => {
     setError("");
-    setFoundEmail("");
+    setFoundEmail(null);
+    setIsLoading(true);
 
-    const { data, error} = await supabase
-    .from('user_profiles')
-    .select('email')
-    .eq('login_id', username)
-    .single();    
+    try {
+      // 1. 백엔드 API 호출
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/find-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ login_id: username }),
+      });
 
-    if(error || !data) {
-      setError("일치하는 이메일을 찾을 수 없습니다.");
-      return;      
+      const result = await response.json();
+
+      // 2. 응답 처리
+      if (!response.ok) {
+        // 백엔드에서 에러 메시지를 보냈다면 해당 메시지 사용, 없다면 기본 메시지
+        throw new Error(result.message || "일치하는 이메일을 찾을 수 없습니다.");
+      }
+
+      // 3. 마스킹된 이메일 상태 저장 (응답 키값이 masked_email임에 주의)
+      setFoundEmail(result.masked_email);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    setFoundEmail(data.email);
   };
 
   return (
@@ -57,9 +72,9 @@ export const FindEmail = () => {
         <Button 
           variant="primary"
           size="md"
-          disabled={!username}
+          disabled={!username || isLoading}
           onClick={handleFindEmail}
-        >이메일 찾기
+        >{isLoading ? "찾는 중..." : "이메일 찾기"}
         </Button>
       </div>
     </>
