@@ -1,14 +1,16 @@
 // 동의·초기화 체크
 import ReactGA from "react-ga4";
 import { sanitizeParams } from "./sanitize";
+import { GAEventParams } from "./types";
 
-// 동의 여부 확인 (기본값 true, 나중에 설정 페이지와 연동)
 const hasAnalyticsConsent = () => {
   const consent = localStorage.getItem("analytics_consent");
   return consent === null || consent === "true"; 
 };
 
-export const trackEvent = (eventName: string, params?: object) => {
+export const trackEvent = <K extends keyof GAEventParams>(
+  eventName: K,
+  params?: GAEventParams[K]) => {
   if (!hasAnalyticsConsent()) return;
 
   const sanitizedParams = sanitizeParams({
