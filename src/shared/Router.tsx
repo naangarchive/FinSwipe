@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase';
+import { usePageView } from "../hooks/usePageView.ts";
+//라우터
 import { Home } from '../pages/Home';
 import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
@@ -11,6 +13,11 @@ import { Like } from "../pages/Like.tsx";
 import { My } from "../pages/My.tsx";
 import { ProfileEdit } from "../pages/ProfileEdit.tsx";
 import { Settings } from "../pages/Settings.tsx";
+
+const PageViewTracker = () => {
+  usePageView();
+  return null;
+};
 
 const Router = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -57,6 +64,7 @@ const Router = () => {
 
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <Routes>
         {/* 로그인 */}
         <Route path="/login" element={!isLoggedIn ? <Login /> : <Navigate to="/" />} />
