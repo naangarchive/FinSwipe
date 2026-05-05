@@ -1,12 +1,16 @@
 import { useEffect } from "react";
+import { initGA } from "./lib/analytics/config";
 import Router from './shared/Router';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { supabase } from './lib/supabase';
 import './lib/firebase';
 
+
 function App() {
 
   useEffect(() => {
+    initGA();
+    
     const initPush = async () => {
       try {
         await FirebaseMessaging.requestPermissions();
