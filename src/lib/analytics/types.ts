@@ -60,16 +60,7 @@ export interface GAEventParams {
     cards_consumed: number; 
     total_time_ms: number;
     taps_count: number;
-  };
-  deck_abandoned: {
-    ticker: string;
-    total_cards: number;
-    cards_consumed: number;
-    exit_position: number;
-    exit_type: 'back_button' | 'tab_switch' | 'app_close' | 'navigation';
-    time_before_exit_ms: number;
-  }
-  
+  };  
 
   // C. 카드 상세
   detail_viewed: { 
