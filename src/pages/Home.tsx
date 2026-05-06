@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { trackEvent } from "../lib/analytics/events";
+
 // Swiper 라이브러리
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, EffectCoverflow } from 'swiper/modules';
@@ -15,6 +17,66 @@ export const Home = () => {
   const [groupedNews, setGroupedNews] = useState<TickerGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
+
+  // 시간을 추적하기 위한 Ref
+  const startTimeRef = useRef<number>(Date.now());
+  const hasFiredFeedViewed = useRef(false); // B-01 중복 발화 방지
+
+  // [B-01] feed_viewed: 데이터 로딩 완료 시 1회 발화
+  useEffect(() => {
+    if (!isLoading && groupedNews.length > 0 && !hasFiredFeedViewed.current) {
+      trackEvent("feed_viewed", {
+        total_decks: groupedNews.length,
+        total_tickers: groupedNews.length,
+        sort_method: sortType
+      });
+      hasFiredFeedViewed.current = true;
+    }
+  }, [isLoading, groupedNews, sortType]);
+
+  // [B-02] feed_sort_changed: 정렬 변경 시 발화
+  const handleSortUpdate = (newMethod: 'time' | 'power') => {
+    if (sortType === newMethod) return;
+
+    trackEvent("feed_sort_changed", {
+      from: sortType,
+      to: newMethod
+    });
+    setSortType(newMethod);
+  };
+
+
+  const handleSlideChange = (swiper: any, articles: any[], groupTicker: string) => {
+    const prevIdx = swiper.previousIndex;
+    const currentIdx = swiper.activeIndex;
+    const swipedCard = articles[prevIdx];
+
+    if (!swipedCard) return;
+
+    const duration = Date.now() - startTimeRef.current;
+
+    // [B-05] 카드 스와이프
+    trackEvent("card_swiped", {
+      news_id: swipedCard.id,
+      ticker: groupTicker,
+      direction: currentIdx > prevIdx ? "next" : "left",
+      time_on_card_ms: duration,
+      card_index: prevIdx + 1,
+      swipe_method: "gesture",
+    });
+
+    // [B-07] deck_completed: 마지막 카드에 도달했을 때
+    if (swiper.isEnd) {
+      trackEvent("deck_completed", {
+        ticker: groupTicker,
+        total_cards: articles.length,
+        cards_consumed: articles.length,
+        total_time_ms: duration,
+        taps_count: 0
+      });
+    }
+    startTimeRef.current = Date.now();
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -70,6 +132,8 @@ export const Home = () => {
         }))
 
         setGroupedNews(formattedGroups);
+
+
       } catch (error) {
         console.error('데이터 로드 실패:', error);
       } finally {
@@ -88,14 +152,14 @@ export const Home = () => {
     <main className="w-full h-full py-6 pb-20 space-y-7 relative">      
       <div className="absolute right-4 top-6 flex p-1 rounded-[14px] bg-gray-100">
         <button 
-          onClick={() => setSortType('time')}
+          onClick={() => handleSortUpdate('time')}
           className={`w-18 h-9 rounded-[10px] font-semibold text-sm ${
             sortType === 'time'
             ? 'bg-white text-gray-900'
             : 'text-gray-500'
           }`}>시간순</button>
         <button 
-          onClick={() => setSortType('power')}
+          onClick={() => handleSortUpdate('power')}
           className={`w-18 h-9 rounded-[10px] font-semibold text-sm ${
             sortType === 'power'
             ? 'bg-white text-gray-900'
@@ -117,6 +181,7 @@ export const Home = () => {
           </div>          
 
           <Swiper
+            onSlideChange={(swiper) => handleSlideChange(swiper, group.articles, group.tickerName)}
             modules={[Pagination, EffectCoverflow]}
             effect={'coverflow'}
             coverflowEffect={{
