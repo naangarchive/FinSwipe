@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import type { NewsCardData } from '../../types/news';
+import { useCardImpression } from "../../hooks/useCardImpression";
+import { trackEvent } from "../../lib/analytics/events";
 //유틸리티
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
@@ -8,22 +10,47 @@ import clock from '../../assets/ic_clock.svg';
 import defaultThumb from "../../assets/thumb_img.jpg";
 
 
-export const SwipeCard = ({ data, groupTicker, articles  }: { 
+export const SwipeCard = ({ data, groupTicker, articles, index  }: { 
   data: NewsCardData;
   groupTicker: string;
   articles: NewsCardData[];
+  index: number;
   }) => {
 
   const navigate = useNavigate();
-    const handleCardClick = () => {
-      console.log('groupTicker:', groupTicker, articles);
-      navigate(`/detail/${data.id}`, { state: {groupTicker, articles} });
+
+  // --- GA4 데이터 구성 ---
+  const gaData = {
+    news_id: data.id,
+    ticker: groupTicker,
+    sentiment_label: data.sentiment_label as any,
+    sentiment_score: data.sentiment_score ?? 0, // 데이터에 점수가 있다면 넣고 없으면 0
+    card_index: index + 1, // 보통 분석 시에는 1부터 시작하는 걸 선호합니다.
+    deck_size: articles.length,
+    is_push_entry: false, // 진입 경로 로직에 따라 수정 가능
+  }
+
+  // [B-04] 카드 노출 추적 (50% 이상, 1초 대기)
+  const cardRef = useCardImpression(gaData);
+
+  const handleCardClick = () => {
+    // [B-06] 카드 탭(클릭) 이벤트 발화
+    trackEvent("card_tapped", {
+      news_id: data.id,
+      ticker: groupTicker,
+      sentiment_label: data.sentiment_label,
+      card_index: index + 1
+    });
+
+    console.log('groupTicker:', groupTicker, articles);
+    navigate(`/detail/${data.id}`, { state: {groupTicker, articles} });
   };
 
   const isRead = JSON.parse(localStorage.getItem('readNews') ?? '[]').includes(data.id);
 
   return (
     <div
+      ref={cardRef}
       onClick={handleCardClick}
       className={`overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200
         ${isRead ? 'opacity-50' : ''}

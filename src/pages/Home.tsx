@@ -137,12 +137,13 @@ export const Home = () => {
               type: 'fraction'
             }}         
           >
-            {group.articles.map((article: NewsCardData) => (
+            {group.articles.map((article: NewsCardData, index:number) => (
               <SwiperSlide key={`${group.tickerName}-${article.id}`}>
                 <SwipeCard 
                   data={article}
                   groupTicker={group.tickerName}
                   articles={group.articles}
+                  index={index}
                 />
               </SwiperSlide>
             ))}
