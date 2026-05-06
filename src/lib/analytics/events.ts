@@ -1,7 +1,7 @@
 // 동의·초기화 체크
 import ReactGA from "react-ga4";
 import { sanitizeParams } from "./sanitize";
-import { GAEventParams } from "./types";
+import type { GAEventParams } from "./types";
 
 const hasAnalyticsConsent = () => {
   const consent = localStorage.getItem("analytics_consent");
