@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase, signInWithGoogle } from '../lib/supabase';
 import { validateEmail } from "../utils/validation";
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+
 //컴포넌트
 import { Input } from "../components/common/input";
 import { Button } from "../components/common/button";
@@ -36,19 +38,53 @@ export const Login = () => {
     }
 
     // 이메일로 로그인
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (loginError) {
       alert("비밀번호가 올바르지 않습니다.");
     } else {
-      navigate('/'); // 메인으로 이동
+      // --- 푸시 알림 토큰 발급 및 저장 로직 ---
+      try {
+        const check = await FirebaseMessaging.checkPermissions();
+        let finalPermission = check.receive;
+
+        // 알림 권한을 물어본 적이 없다면 팝업 호출
+        if (finalPermission === 'prompt') {
+          const permission = await FirebaseMessaging.requestPermissions();
+          finalPermission = permission.receive;
+        }
+
+        // 권한이 허용된 상태라면 토큰 발급 후 백엔드 전송
+        if (finalPermission === 'granted') {
+          const { token } = await FirebaseMessaging.getToken();
+          
+          if (authData.user) {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+            const response = await fetch(`${API_BASE_URL}/news/device-token?user_id=${authData.user.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+            });
+
+            if (!response.ok) {
+              console.error(`기기 토큰 저장 실패. 서버 상태 코드: ${response.status}`);
+            }
+          }
+        } else {
+          console.log("알림 권한이 거부되어 토큰을 저장하지 않습니다.");
+        }
+      } catch (err) {
+        console.error("푸시 알림 설정 중 에러 발생:", err);
+      }
+      
+      // 모든 처리가 완료되면 메인으로 이동
+      navigate('/'); 
     }
   };
 
-  
   return (
     <>
       <div className="flex flex-col gap-4 p-6 py-16 bg-[linear-gradient(180deg,rgba(0,100,255,1)_0%,rgba(0,82,204,1)_100%)]">

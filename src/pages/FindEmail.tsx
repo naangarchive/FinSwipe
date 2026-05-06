@@ -38,8 +38,12 @@ export const FindEmail = () => {
       // 3. 마스킹된 이메일 상태 저장 (응답 키값이 masked_email임에 주의)
       setFoundEmail(result.masked_email);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("알 수 없는 에러가 발생했습니다.");
+      }
     } finally {
       setIsLoading(false);
     }
