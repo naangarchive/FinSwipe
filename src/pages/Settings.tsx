@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Capacitor } from '@capacitor/core';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { getWebPushToken } from '../lib/firebase';
 //컴포넌트
 import { Header } from "../components/layout/Header";
 import { Navigation } from "../components/layout/Navigation";
@@ -43,10 +44,24 @@ export const Settings = () => {
 
     let currentToken = "";
     if (Capacitor.isNativePlatform()) {
+      // App
       const { token } = await FirebaseMessaging.getToken();
       currentToken = token;
+    } else {
+      // Web
+      const webToken = await getWebPushToken();
+      if (webToken) {
+        currentToken = webToken;
+      }
     }
 
+    // 토큰을 아예 못 가져왔으면 빈 값 에러를 막기 위해 조용히 종료
+    if (!currentToken) {
+      console.log("토큰을 찾을 수 없거나 권한이 없어 DB 업데이트를 건너뜁니다.");
+      return; 
+    }
+
+    // 정상적인 토큰이 있을 때만 Supabase로 전송
     const { error } = await supabase
     .from('device_tokens')
     .upsert({
@@ -57,7 +72,7 @@ export const Settings = () => {
     }, { onConflict: 'token' });
 
     if(error) {
-      console.error("알림 설정 업데이트 실패", error);
+      console.error("알림 설정 업데이트 실패:", error);
       alert("설정 저장에 실패했습니다.");
     }
   }
@@ -69,6 +84,42 @@ export const Settings = () => {
       return true;
     }
 
+    // 🌐 웹 브라우저
+    if (!Capacitor.isNativePlatform()) {
+      try {        
+        const webToken = await getWebPushToken();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (webToken && user) {          
+          const API_BASE_URL = import.meta.env.VITE_API_URL;
+          await fetch(`${API_BASE_URL}/news/device-token?user_id=${user.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: webToken }),
+          });
+
+          const { error } = await supabase
+            .from('device_tokens')
+            .upsert({
+              user_id: user.id,
+              token: webToken,
+              notify_all_news: isAll,
+              notify_sentiment_news: isSentiment
+            }, { onConflict: 'token' });
+
+          if (error) throw error;
+          return true;
+        } else {
+          alert("웹 브라우저 알림 권한을 허용해주세요!");
+          return false;
+        }
+      } catch (error) {
+        console.error("웹 설정 저장 중 에러:", error);
+        return false;
+      }
+    }
+
+    // 📱 네이티브(앱)
     try {
       const permission = await FirebaseMessaging.requestPermissions();
       

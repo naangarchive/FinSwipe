@@ -1,5 +1,5 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -17,4 +17,25 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+
+export const getWebPushToken = async () => {
+  try {
+    // 브라우저가 웹 푸시를 지원하는지 먼저 확인 (사파리 구버전 등 방어)
+    const supported = await isSupported();
+    if (!supported) {
+      console.log("이 브라우저는 웹 푸시를 지원하지 않습니다.");
+      return null;
+    }
+
+    const messaging = getMessaging(app);    
+    const currentToken = await getToken(messaging, {
+      vapidKey: import.meta.env.VITE_VAPID_KEY
+    });
+
+    return currentToken;
+  } catch (error) {
+    console.error("웹 푸시 토큰 발급 에러:", error);
+    return null;
+  }
+};
