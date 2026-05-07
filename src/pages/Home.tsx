@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { trackEvent } from "../lib/analytics/events";
 import { SwipeCard } from '../components/briefing/SwipeCard';
 import { supabase } from "../lib/supabase";
-import type { NewsCardData, TickerGroup } from "../types/news";
+import type { NewsCardData } from "../types/news";
 import type { Swiper as SwiperClass } from 'swiper/types';
 
 // Swiper 라이브러리
