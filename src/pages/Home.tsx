@@ -24,7 +24,6 @@ export const Home = () => {
   const startTimeRef = useRef<number>(Date.now());
   const hasFiredFeedViewed = useRef(false);
 
-  // [핵심] rawData나 sortType이 변경될 때마다 실행됨
   const groupedNews = useMemo(() => {
     if (rawData.length === 0) return [];
 
@@ -51,10 +50,12 @@ export const Home = () => {
       });
     });
 
-    return Object.keys(groups).map((name) => ({
-      tickerName: name,
-      articles: groups[name],
-    }));
+    return Object.keys(groups)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => ({
+        tickerName: name,
+        articles: groups[name],
+      }));
   }, [rawData, sortType, userTickers]);
 
   // [B-01] feed_viewed
