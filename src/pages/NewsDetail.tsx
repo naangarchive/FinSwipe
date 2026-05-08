@@ -8,7 +8,6 @@ import { getTimeAgo } from "../utils/time";
 import { getSourceName } from "../utils/format";
 //이미지
 import defaultThumb from "../assets/thumb_img.jpg";
-import Thunder from "../assets/ic_thunder.svg";
 
 export const NewsDetail = () => {  
 
@@ -107,32 +106,35 @@ export const NewsDetail = () => {
 
       {/* 3줄 요약 */}
       <div className="p-5 rounded-2xl border border-gray-200 bg-white">
-        <div className="flex items-center gap-2 mb-4">
-            <img src={Thunder} alt="제목" />
+        <div className="flex items-center justify-between mb-4">
             <p className="text-lg font-bold text-gray-900">3줄 요약</p>
+            <div className="flex items-center gap-1 h-8 px-3 rounded-lg bg-gray-100">
+              <p className="text-sm font-medium text-gray-700">감성점수</p>
+              <p className="text-sm font-bold text-gray-900">{Math.floor(news.sentiment_score * 100)}</p>
+            </div>
         </div>
         
         <ul className="flex flex-col gap-3">
-      {news.xai_ko?.highlights.slice(0, 3).map((highlight, index) => {
-        const { excerpt, start_char, end_char } = highlight;
-        const before = excerpt.slice(0, start_char);
-        const highlighted = excerpt.slice(start_char, end_char);
-        const after = excerpt.slice(end_char);
+        {news.xai_ko?.highlights.slice(0, 3).map((highlight, index) => {
+          const { excerpt, start_char, end_char } = highlight;
+          const before = excerpt.slice(0, start_char);
+          const highlighted = excerpt.slice(start_char, end_char);
+          const after = excerpt.slice(end_char);
 
-        return (
-          <li key={index} className="flex gap-3 p-4 border border-blue-100 rounded-[14px]">
-            <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
-              {index + 1}
-            </span>
-            <span className="text-sm text-gray-700 leading-relaxed">
-              {before}
-              <mark className="bg-yellow-200 text-gray-900">{highlighted}</mark>
-              {after}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+            return (
+            <li key={index} className="flex gap-3 p-4 border border-blue-100 rounded-[14px]">
+              <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
+                {index + 1}
+              </span>
+              <span className="text-sm text-gray-700 leading-relaxed">
+                {before}
+                <mark className="bg-yellow-200 text-gray-900">{highlighted}</mark>
+                {after}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
       </div>
 
       {/* 본문 요약영역 */}
