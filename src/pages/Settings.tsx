@@ -20,16 +20,17 @@ export const Settings = () => {
   // 페이지 로드 시 기존 설정 불러오기
   useEffect(() => {
     const fetchSettings = async () => {
-      const { data: {user} } = await supabase.auth.getUser();
-      if(!user) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { data, error } = await supabase
-      .from('device_tokens')
-      .select('notify_all_news, notify_sentiment_news')
-      .eq('user_id',user.id)
-      .single();
+        .from('device_tokens')
+        .select('notify_all_news, notify_sentiment_news')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
 
-      if( data && !error){
+      if (data && !error) {
         setAllAlarm(data.notify_all_news);
         setSentimentAlarm(data.notify_sentiment_news);
       }
@@ -37,84 +38,69 @@ export const Settings = () => {
     fetchSettings();
   }, []);
 
-  // DB 업데이트 공통 함수
+  // DB 업데이트 공통 함수 (동기화)
   const updateSettingsDB = async (isAll: boolean, isSentiment: boolean) => {
-    const { data: {user} } = await supabase.auth.getUser();
-    if(!user) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
 
     let currentToken = "";
     if (Capacitor.isNativePlatform()) {
-      // App
       const { token } = await FirebaseMessaging.getToken();
       currentToken = token;
     } else {
-      // Web
       const webToken = await getWebPushToken();
-      if (webToken) {
-        currentToken = webToken;
-      }
+      if (webToken) currentToken = webToken;
     }
 
-    // 토큰을 아예 못 가져왔으면 빈 값 에러를 막기 위해 조용히 종료
     if (!currentToken) {
-      console.log("토큰을 찾을 수 없거나 권한이 없어 DB 업데이트를 건너뜁니다.");
-      return; 
+      console.log("토큰을 찾을 수 없어 DB 업데이트를 건너뜁니다.");
+      return false;
     }
 
-    // 정상적인 토큰이 있을 때만 Supabase로 전송
+    await supabase
+      .from('device_tokens')
+      .upsert({ user_id: user.id, token: currentToken }, { onConflict: 'token' });
+
     const { error } = await supabase
-    .from('device_tokens')
-    .upsert({
-      user_id: user.id,
-      token: currentToken,
-      notify_all_news: isAll,
-      notify_sentiment_news: isSentiment
-    }, { onConflict: 'token' });
+      .from('device_tokens')
+      .update({ 
+        notify_all_news: isAll,
+        notify_sentiment_news: isSentiment
+      })
+      .eq('user_id', user.id);
 
-    if(error) {
-      console.error("알림 설정 업데이트 실패:", error);
+    if (error) {
       alert("설정 저장에 실패했습니다.");
+      return false;
     }
+    return true;
   }
 
+  // 권한 요청 및 초기 저장 함수
   const requestAndSaveToken = async (isAll: boolean, isSentiment: boolean) => {
-    
-    if (!Capacitor.isNativePlatform()) {
-      await updateSettingsDB(isAll, isSentiment);
-      return true;
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
 
     // 🌐 웹 브라우저
     if (!Capacitor.isNativePlatform()) {
-      try {        
+      try {
         const webToken = await getWebPushToken();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (webToken && user) {          
+        if (webToken) {
+          // 백엔드 전송 (선택 사항)
           const API_BASE_URL = import.meta.env.VITE_API_URL;
           await fetch(`${API_BASE_URL}/news/device-token?user_id=${user.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: webToken }),
           });
-
-          const { error } = await supabase
-            .from('device_tokens')
-            .upsert({
-              user_id: user.id,
-              token: webToken,
-              notify_all_news: isAll,
-              notify_sentiment_news: isSentiment
-            }, { onConflict: 'token' });
-
-          if (error) throw error;
-          return true;
+          
+          return await updateSettingsDB(isAll, isSentiment);
         } else {
           alert("웹 브라우저 알림 권한을 허용해주세요!");
           return false;
         }
       } catch (error) {
-        console.error("웹 설정 저장 중 에러:", error);
+        console.error("웹 설정 에러:", error);
         return false;
       }
     }
@@ -122,28 +108,24 @@ export const Settings = () => {
     // 📱 네이티브(앱)
     try {
       const permission = await FirebaseMessaging.requestPermissions();
-      
       if (permission.receive === 'granted') {
         const { token } = await FirebaseMessaging.getToken();
-        const { data: { user } } = await supabase.auth.getUser();
+        
+        // 백엔드 전송
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        await fetch(`${API_BASE_URL}/news/device-token?user_id=${user.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
 
-        if (user) {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-          await fetch(`${API_BASE_URL}/news/device-token?user_id=${user.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token }),
-          });
-          
-          await updateSettingsDB(isAll, isSentiment);
-          return true; // 성공
-        }
+        return await updateSettingsDB(isAll, isSentiment);
       } else {
         alert("휴대폰 설정에서 알림 권한을 허용해 주세요!");
-        return false; // 실패
+        return false;
       }
     } catch (error) {
-      console.error("토큰 발급 실패:", error);
+      console.error("앱 토큰 발급 실패:", error);
       return false;
     }
   };
@@ -244,7 +226,7 @@ export const Settings = () => {
           </li>
           <li className="flex items-center justify-between h-18 px-4">
             <p className="text-base text-gray-700">최근 업데이트</p>
-            <p className="text-base text-gray-500">2026.00.00</p>
+            <p className="text-base text-gray-500">2026.05.12</p>
           </li>
         </ul>
       </div>
