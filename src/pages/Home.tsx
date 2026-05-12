@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useNews } from "../hooks/useNews";
 import { trackEvent } from "../lib/analytics/events";
 import { SwipeCard } from '../components/briefing/SwipeCard';
 import { supabase } from "../lib/supabase";
@@ -16,12 +17,13 @@ import { Header } from "../components/layout/Header"
 import { Navigation } from "../components/layout/Navigation"
 
 export const Home = () => {
-  const [rawData, setRawData] = useState<NewsCardData[]>([]);
+  
+  const { data: rawData = [], isLoading } = useNews();
+  
   const [userTickers, setUserTickers] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
 
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number>(0);
   const hasFiredFeedViewed = useRef(false);
 
   const groupedNews = useMemo(() => {
@@ -48,7 +50,7 @@ export const Home = () => {
     sortedData.forEach((article) => {
       const tickerList = (article.tickers && article.tickers.length > 0) ? article.tickers : ['NULL'];
 
-      tickerList.forEach((t) => {
+      tickerList.forEach((t:string) => {
         if (!userTickers.includes(t)) return;
         if (!groups[t]) groups[t] = [];
         if (!groups[t].find(item => item.id === article.id)) {
@@ -93,6 +95,27 @@ export const Home = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("tickers, card_sort_order")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (profile) {
+        setUserTickers(profile.tickers ?? []);
+        // DB에 저장된 유저의 정렬 취향을 불러옵니다.
+        setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   const handleSlideChange = (swiper: SwiperClass, articles: NewsCardData[], groupTicker: string) => {
     const prevIdx = swiper.previousIndex;
     const currentIdx = swiper.activeIndex;
@@ -122,62 +145,6 @@ export const Home = () => {
     }
     startTimeRef.current = Date.now();
   };
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        const { data: articles, error: newsError } = await supabase
-          .from('news_articles')
-          .select('*');
-        
-        if (newsError) throw newsError;
-
-        const { data: readLogs, error: readError } = await supabase
-          .from('user_read_articles')
-          .select('article_id')
-          .eq('user_id', session.user.id);
-
-        if (readError) throw readError;
-
-        const readIds = new Set(readLogs.map(log => log.article_id));
-
-        const mergedData = articles.map((article: NewsCardData) => ({
-          ...article,
-          is_read: readIds.has(article.id)
-        }));
-
-        setRawData(mergedData);
-
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("tickers, card_sort_order")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (profile) {
-          setUserTickers(profile.tickers ?? []);
-          setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
-        }
-
-      } catch (error) {
-        console.error('데이터 로드 실패:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchInitialData();
-
-    const handleFocus = () => {
-      fetchInitialData(); 
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
