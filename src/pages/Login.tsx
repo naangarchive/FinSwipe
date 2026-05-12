@@ -90,7 +90,7 @@ export const Login = () => {
   const handleGoogleLogin = async () => {
     const redirectTo = Capacitor.isNativePlatform()
     ? 'com.finswipe.app://login-callback' // App 유저는 딥링크 앱으로 복귀
-    : 'https://fin-swipe.vercel.app/home'; // Web 유저는 웹사이트로 복귀
+    : 'https://fin-swipe.vercel.app/'; // Web 유저는 웹사이트로 복귀
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
