@@ -27,8 +27,15 @@ export const Home = () => {
   const groupedNews = useMemo(() => {
     if (rawData.length === 0) return [];
 
-    // 1. 정렬 로직 적용
     const sortedData = [...rawData].sort((a, b) => {
+      // 읽음 상태 비교
+      const aRead = !!a.is_read;
+      const bRead = !!b.is_read;
+
+      if (aRead !== bRead) {
+        return aRead ? 1 : -1;
+      }
+      
       if (sortType === 'power') {
         return Math.abs(b.sentiment_score || 0) - Math.abs(a.sentiment_score || 0);
       }
@@ -123,22 +130,39 @@ export const Home = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        // 1. 유저 설정(티커, 정렬순서) 가져오기
+        const { data: articles, error: newsError } = await supabase
+          .from('news_articles')
+          .select('*');
+        
+        if (newsError) throw newsError;
+
+        const { data: readLogs, error: readError } = await supabase
+          .from('user_read_articles')
+          .select('article_id')
+          .eq('user_id', session.user.id);
+
+        if (readError) throw readError;
+
+        const readIds = new Set(readLogs.map(log => log.article_id));
+
+        const mergedData = articles.map((article: NewsCardData) => ({
+          ...article,
+          is_read: readIds.has(article.id)
+        }));
+
+        setRawData(mergedData);
+
         const { data: profile } = await supabase
           .from("user_profiles")
           .select("tickers, card_sort_order")
           .eq("id", session.user.id)
           .maybeSingle();
 
-        const tickers = profile?.tickers ?? [];
-        setUserTickers(tickers);
-        setSortType(profile?.card_sort_order === 'power' ? 'power' : 'time');
+        if (profile) {
+          setUserTickers(profile.tickers ?? []);
+          setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
+        }
 
-        // 2. 뉴스 데이터 전체 가져오기
-        const { data, error } = await supabase.from('news_articles').select('*');
-        if (error) throw error;
-
-        setRawData(data as NewsCardData[]);
       } catch (error) {
         console.error('데이터 로드 실패:', error);
       } finally {
@@ -146,6 +170,13 @@ export const Home = () => {
       }
     };
     fetchInitialData();
+
+    const handleFocus = () => {
+      fetchInitialData(); 
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   if (isLoading) {

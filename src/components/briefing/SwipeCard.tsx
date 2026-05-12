@@ -46,14 +46,14 @@ export const SwipeCard = ({ data, groupTicker, articles, index  }: {
     navigate(`/detail/${data.id}`, { state: {groupTicker, articles} });
   };
 
-  const isRead = JSON.parse(localStorage.getItem('readNews') ?? '[]').includes(data.id);
+  const isRead = !!data.is_read;
 
   return (
     <div
       ref={cardRef}
       onClick={handleCardClick}
       className={`overflow-hidden relative w-full items-start bg-white rounded-3xl border border-solid border-gray-200
-        ${isRead ? 'opacity-50' : ''}
+        ${isRead ? 'opacity-40 grayscale-20' : 'opacity-100'}
       `}>
       {/* 이미지 */}
       <div className='overflow-hidden h-40 bg-gray-100'>

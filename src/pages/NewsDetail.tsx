@@ -23,16 +23,32 @@ export const NewsDetail = () => {
   const currentIndex = articles.findIndex(a => a.id === id);
 
   useEffect(() => {
-    const fetchDetail = async () => {
-      const { data } = await supabase
+    const fetchDetailAndMarkAsRead = async () => {
+    
+    const { data } = await supabase
       .from('news_articles')
       .select('*')
-      .eq('id',id)
+      .eq('id', id)
       .single();
 
-      if (data) setNews(data);
+    if (data) {
+      setNews(data);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && id) {
+        try {          
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+          await fetch(`${API_BASE_URL}/news/${id}/read?userId=${session.user.id}`, {
+            method: 'POST',
+          });
+        } catch (err) {
+          console.error("백엔드 읽음 처리 실패:", err);
+        }
+      }
     }
-    fetchDetail();
+  };
+
+  fetchDetailAndMarkAsRead();
 
     if (id) {
       const read = JSON.parse(localStorage.getItem('readNews') ?? '[]');
@@ -138,7 +154,7 @@ export const NewsDetail = () => {
       </div>
 
       {/* 본문 요약영역 */}
-      <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.summary}</div>
+      <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.content_preview}</div>
 
       {/* 하단버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full min-w-80 max-w-107.5 z-50">

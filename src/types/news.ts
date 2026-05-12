@@ -19,6 +19,7 @@ export interface XaiKo {
 export interface NewsCardData {
   id: string;                // uuid
   headline_ko: string;          // 제목
+  content_preview: string;   // 원문 300자
   summary: string;           // 전체 요약 텍스트
   summary_3lines_ko: string[];  // jsonb (3줄 요약 배열)
   xai_ko: XaiKo | null;      // 3줄 요약 하이라이트
@@ -30,6 +31,7 @@ export interface NewsCardData {
   published_at: string;      // 날짜
   categories: string[];      // 카테고리
   image_url: string;         // 썸네일
+  is_read?: boolean;
 }
 
 //티커별로 데이터 묶기
