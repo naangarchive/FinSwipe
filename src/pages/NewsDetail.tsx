@@ -144,30 +144,32 @@ export const NewsDetail = () => {
       </div>
 
       {/* 하이라이트 */}
-      <div className="p-5 rounded-2xl border border-gray-200 bg-white">
-        <p className="mb-4 text-lg font-bold text-gray-900">하이라이트</p>
-        <ul className="flex flex-col gap-4">
-          {news?.xai_ko?.highlights.map((item, idx) => {
-            const scorePercent = Math.round(item.relevance_score * 100);
+      {news?.xai_ko && (
+        <div className="p-5 rounded-2xl border border-gray-200 bg-white">
+          <p className="mb-4 text-lg font-bold text-gray-900">하이라이트</p>
+          <ul className="flex flex-col gap-4">
+            {news?.xai_ko?.highlights.map((item, idx) => {
+              const scorePercent = Math.round(item.relevance_score * 100);
 
-            return (
-              <li key={idx} className="flex flex-col p-4 gap-2 border border-gray-200 rounded-[14px] bg-gray-50">
-                <div className="flex gap-3 items-center">
-                  <span className="w-3 h-3 text-[0px] rounded-full bg-green-500">dot</span>
-                  <div className="relative grow h-2 rounded-full bg-gray-200 ">
-                    <p 
-                      className="absolute left-0 top-0 h-2 w-[90%] rounded-full bg-gray-900 transition-all duration-500"
-                      style={{ width: `${scorePercent}%` }}
-                    ></p>
+              return (
+                <li key={idx} className="flex flex-col p-4 gap-2 border border-gray-200 rounded-[14px] bg-gray-50">
+                  <div className="flex gap-3 items-center">
+                    <span className="w-3 h-3 text-[0px] rounded-full bg-green-500">dot</span>
+                    <div className="relative grow h-2 rounded-full bg-gray-200 ">
+                      <p 
+                        className="absolute left-0 top-0 h-2 w-[90%] rounded-full bg-gray-900 transition-all duration-500"
+                        style={{ width: `${scorePercent}%` }}
+                      ></p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-600">({scorePercent}%)</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-600">({scorePercent}%)</p>
-                </div>
-                <p className="pl-6 text-sm leading-relaxed text-gray-700">"{item.excerpt}"</p>
-              </li>
-            );
-          })}          
-        </ul>
-      </div>
+                  <p className="pl-6 text-sm leading-relaxed text-gray-700">"{item.excerpt}"</p>
+                </li>
+              );
+            })}          
+          </ul>
+        </div>
+      )}
 
       {/* 본문 요약영역 */}
       <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.content_preview}</div>
