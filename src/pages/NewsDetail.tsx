@@ -128,29 +128,45 @@ export const NewsDetail = () => {
               <p className="text-sm font-medium text-gray-700">감성점수</p>
               <p className="text-sm font-bold text-gray-900">{Math.floor(news.sentiment_score * 100)}</p>
             </div>
-        </div>
-        
+        </div>        
         <ul className="flex flex-col gap-3">
-        {news.xai_ko?.highlights.slice(0, 3).map((highlight, index) => {
-          const { excerpt, start_char, end_char } = highlight;
-          const before = excerpt.slice(0, start_char);
-          const highlighted = excerpt.slice(start_char, end_char);
-          const after = excerpt.slice(end_char);
+          {news.summary_3lines_ko.map((line, idx) => {
+            return (
+              <li key={idx} className="flex gap-3 p-4 text-sm text-gray-700 border border-gray-200 rounded-[14px]">
+                <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
+                  {idx+ 1}
+                </span>
+                {line}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* 하이라이트 */}
+      <div className="p-5 rounded-2xl border border-gray-200 bg-white">
+        <p className="mb-4 text-lg font-bold text-gray-900">하이라이트</p>
+        <ul className="flex flex-col gap-4">
+          {news?.xai_ko?.highlights.map((item, idx) => {
+            const scorePercent = Math.round(item.relevance_score * 100);
 
             return (
-            <li key={index} className="flex gap-3 p-4 border border-blue-100 rounded-[14px]">
-              <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
-                {index + 1}
-              </span>
-              <span className="text-sm text-gray-700 leading-relaxed">
-                {before}
-                <mark className="bg-yellow-200 text-gray-900">{highlighted}</mark>
-                {after}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+              <li key={idx} className="flex flex-col p-4 gap-2 border border-gray-200 rounded-[14px] bg-gray-50">
+                <div className="flex gap-3 items-center">
+                  <span className="w-3 h-3 text-[0px] rounded-full bg-green-500">dot</span>
+                  <div className="relative grow h-2 rounded-full bg-gray-200 ">
+                    <p 
+                      className="absolute left-0 top-0 h-2 w-[90%] rounded-full bg-gray-900 transition-all duration-500"
+                      style={{ width: `${scorePercent}%` }}
+                    ></p>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600">({scorePercent}%)</p>
+                </div>
+                <p className="pl-6 text-sm leading-relaxed text-gray-700">"{item.excerpt}"</p>
+              </li>
+            );
+          })}          
+        </ul>
       </div>
 
       {/* 본문 요약영역 */}
