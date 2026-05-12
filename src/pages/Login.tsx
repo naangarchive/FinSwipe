@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase, signInWithGoogle } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { validateEmail } from "../utils/validation";
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { Capacitor } from '@capacitor/core';
 
 //컴포넌트
 import { Input } from "../components/common/input";
@@ -85,6 +86,25 @@ export const Login = () => {
     }
   };
 
+  // Google 로그인 분기처리
+  const handleGoogleLogin = async () => {
+    const redirectTo = Capacitor.isNativePlatform()
+    ? 'com.finswipe.app://login-callback' // App 유저는 딥링크 앱으로 복귀
+    : 'https://fin-swipe.vercel.app/home'; // Web 유저는 웹사이트로 복귀
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo,
+      },
+    });
+
+    if (error) {
+      console.error("구글 로그인 에러:", error.message);
+      alert("로그인 중 문제가 발생했습니다.");
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-4 p-6 py-16 bg-[linear-gradient(180deg,rgba(0,100,255,1)_0%,rgba(0,82,204,1)_100%)]">
@@ -128,7 +148,7 @@ export const Login = () => {
             <div className="grow h-px bg-gray-200"></div>
           </div>
           <div className="flex justify-center">
-            <button onClick={() => signInWithGoogle()}
+            <button onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-4 w-full h-14 text-base font-semibold text-gray-700 border rounded-xl border-gray-200">
               <img src={Google} alt="" />
               Google 간편 로그인
