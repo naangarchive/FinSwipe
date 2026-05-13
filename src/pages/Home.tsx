@@ -36,13 +36,14 @@ export const Home = () => {
         return aRead ? 1 : -1;
       }
       
+      // 정렬 버튼
       if (sortType === 'power') {
-        return Math.abs(b.sentiment_score || 0) - Math.abs(a.sentiment_score || 0);
+        return Math.abs(b.sentimentScore || 0) - Math.abs(a.sentimentScore || 0);
       }
-      return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
 
-    // 2. 티커별 그룹화 로직
+    // 티커별 그룹화
     const groups: { [key: string]: NewsCardData[] } = {};
 
     sortedData.forEach((article) => {
@@ -123,58 +124,46 @@ export const Home = () => {
     startTimeRef.current = Date.now();
   };
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+  const fetchInitialData = async () => {
+    try {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-        const { data: articles, error: newsError } = await supabase
-          .from('news_articles')
-          .select('*');
-        
-        if (newsError) throw newsError;
+      const userId = session.user.id;
 
-        const { data: readLogs, error: readError } = await supabase
-          .from('user_read_articles')
-          .select('article_id')
-          .eq('user_id', session.user.id);
+      // 필터링된 최신 뉴스 가져오기
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`
+      );
+      const json = await res.json();
+      const data = json.data;
 
-        if (readError) throw readError;
+      setRawData(data as NewsCardData[]);
 
-        const readIds = new Set(readLogs.map(log => log.article_id));
+      // 유저 프로필 정보 가져오기
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("tickers, card_sort_order")
+        .eq("id", userId)
+        .maybeSingle();
 
-        const mergedData = articles.map((article: NewsCardData) => ({
-          ...article,
-          is_read: readIds.has(article.id)
-        }));
-
-        setRawData(mergedData);
-
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("tickers, card_sort_order")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (profile) {
-          setUserTickers(profile.tickers ?? []);
-          setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
-        }
-
-      } catch (error) {
-        console.error('데이터 로드 실패:', error);
-      } finally {
-        setIsLoading(false);
+      if (profile) {
+        setUserTickers(profile.tickers ?? []);
+        setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
       }
-    };
+
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchInitialData();
 
-    const handleFocus = () => {
-      fetchInitialData(); 
-    };
-
+    const handleFocus = () => { fetchInitialData(); };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
@@ -182,7 +171,7 @@ export const Home = () => {
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
   }
-
+  
   return (
     <>
       <Header type="main" />
