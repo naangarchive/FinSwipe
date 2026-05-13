@@ -87,18 +87,18 @@ export const NewsDetail = () => {
     <Header type="detail" />
     <div className='overflow-hidden relative h-68 bg-gray-100'>        
       {/* 이미지 */}
-      <img src={news.image_url || defaultThumb} alt="" className='w-full h-full object-cover opacity-30'/>
+      <img src={news.imageUrl || defaultThumb} alt="" className='w-full h-full object-cover opacity-30'/>
       {/* 센티먼트, 티커 */}
       <div className="absolute left-0 bottom-0 p-5 flex flex-col gap-3">          
         <div className="flex flex-wrap items-center gap-2">
           <span className={`px-3 h-6 leading-6 rounded-full text-sm font-semibold ${
-            news.sentiment_label === 'positive' ? 'bg-emerald-50 text-[#22C55E]' : 
-            news.sentiment_label === 'negative' ? 'bg-rose-50 text-[#EF4444]' : 
-            news.sentiment_label === 'mixed' ? 'bg-yellow-50 text-[#F59E0B]' : 
+            news.sentimentLabel === 'positive' ? 'bg-emerald-50 text-[#22C55E]' : 
+            news.sentimentLabel === 'negative' ? 'bg-rose-50 text-[#EF4444]' : 
+            news.sentimentLabel === 'mixed' ? 'bg-yellow-50 text-[#F59E0B]' : 
             'bg-gray-100 text-gray-500' // Neutral
             }`}
           >
-            {news.sentiment_label}
+            {news.sentimentLabel}
           </span>
           {groupTicker && (
             <span className="px-3 h-6 leading-6 rounded-full text-white bg-gray-900 text-xs font-bold"> 
@@ -110,11 +110,11 @@ export const NewsDetail = () => {
           ))}
         </div>          
         {/* 제목 */}
-        <h2 className="text-xl font-bold text-gray-900">{news.headline_ko}</h2>
+        <h2 className="text-xl font-bold text-gray-900">{news.headlineKo}</h2>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">{getSourceName(news.source_url)}</span>
+          <span className="text-xs text-gray-500">{getSourceName(news.sourceUrl)}</span>
           <span className="text-xs text-gray-500">•</span>
-          <span className="text-xs text-gray-500">{getTimeAgo(news.published_at)}</span>
+          <span className="text-xs text-gray-500">{getTimeAgo(news.publishedAt)}</span>
         </div>
       </div>
     </div>
@@ -126,11 +126,11 @@ export const NewsDetail = () => {
             <p className="text-lg font-bold text-gray-900">3줄 요약</p>
             <div className="flex items-center gap-1 h-8 px-3 rounded-lg bg-gray-100">
               <p className="text-sm font-medium text-gray-700">감성점수</p>
-              <p className="text-sm font-bold text-gray-900">{Math.floor(news.sentiment_score * 100)}</p>
+              <p className="text-sm font-bold text-gray-900">{Math.floor(news.sentimentScore * 100)}</p>
             </div>
         </div>        
         <ul className="flex flex-col gap-3">
-          {news.summary_3lines_ko.map((line, idx) => {
+          {news.summary3linesKo.map((line, idx) => {
             return (
               <li key={idx} className="flex gap-3 p-4 text-sm text-gray-700 border border-gray-200 rounded-[14px]">
                 <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
@@ -144,11 +144,11 @@ export const NewsDetail = () => {
       </div>
 
       {/* 하이라이트 */}
-      {news?.xai_ko && (
+      {news?.xaiKo && (
         <div className="p-5 rounded-2xl border border-gray-200 bg-white">
           <p className="mb-4 text-lg font-bold text-gray-900">하이라이트</p>
           <ul className="flex flex-col gap-4">
-            {news?.xai_ko?.highlights.map((item, idx) => {
+            {news?.xaiKo?.highlights.map((item, idx) => {
               const scorePercent = Math.round(item.relevance_score * 100);
 
               return (
@@ -172,13 +172,13 @@ export const NewsDetail = () => {
       )}
 
       {/* 본문 요약영역 */}
-      <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.content_preview}</div>
+      <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.contentPreview}</div>
 
       {/* 하단버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full min-w-80 max-w-107.5 z-50">
         <div className="flex gap-2 px-4 py-6 bg-linear-to-t from-white via-white/95 to-transparent">
           <button 
-            onClick={() => window.open(news.source_url, '_blank')}
+            onClick={() => window.open(news.sourceUrl, '_blank')}
             className="flex-1 h-14 bg-blue-600 text-white rounded-xl font-semibold text-basic cursor-pointer"
           >
             자세히보기
