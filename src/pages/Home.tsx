@@ -25,7 +25,7 @@ export const Home = () => {
   const hasFiredFeedViewed = useRef(false);
 
   const groupedNews = useMemo(() => {
-    if (rawData.length === 0) return [];
+    if (!rawData || rawData.length === 0) return [];
 
     const sortedData = [...rawData].sort((a, b) => {
       // 읽음 상태 비교
@@ -136,8 +136,12 @@ export const Home = () => {
       const res = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`
       );
+      if (!res.ok) {
+        throw new Error(`Server Error: ${res.status}`);
+      }
+
       const json = await res.json();
-      const data = json.data;
+      const data = json.data || [];      
 
       setRawData(data as NewsCardData[]);
 
@@ -155,6 +159,7 @@ export const Home = () => {
 
     } catch (error) {
       console.error('데이터 로드 실패:', error);
+      setRawData([]);
     } finally {
       setIsLoading(false);
     }

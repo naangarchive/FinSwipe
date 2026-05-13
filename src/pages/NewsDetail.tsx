@@ -130,7 +130,7 @@ export const NewsDetail = () => {
             </div>
         </div>        
         <ul className="flex flex-col gap-3">
-          {news.summary3linesKo.map((line, idx) => {
+          {news?.summary3linesKo?.map((line, idx) => {
             return (
               <li key={idx} className="flex gap-3 p-4 text-sm text-gray-700 border border-gray-200 rounded-[14px]">
                 <span className="shrink-0 flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-blue-600 rounded-full">
