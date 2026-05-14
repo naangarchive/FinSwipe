@@ -22,7 +22,6 @@ export const Home = () => {
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
 
   const startTimeRef = useRef<number>(Date.now());
-  const hasFiredFeedViewed = useRef(false); // 주석 처리된 곳에서 쓰던 ref 다시 추가
 
   // [수정] groupedNews useMemo 로직
   const groupedNews = useMemo(() => {
