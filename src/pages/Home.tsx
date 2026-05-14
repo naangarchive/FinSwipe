@@ -124,53 +124,55 @@ export const Home = () => {
     startTimeRef.current = Date.now();
   };
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (isSilent = false) => {
     try {
+      if (!isSilent) {
       setIsLoading(true);
+    }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
       const userId = session.user.id;
 
       // 필터링된 최신 뉴스 가져오기
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`
-      );
-      if (!res.ok) {
-        throw new Error(`Server Error: ${res.status}`);
-      }
+      const [json, profile] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`)
+          .then(res => {
+            if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+            return res.json();
+          }),
+        
+        supabase.from("user_profiles")
+          .select("card_sort_order")
+          .eq("id", userId)
+          .maybeSingle()
+          .then(res => res.data)
+      ]);    
 
-      const json = await res.json();
-      const data = json.data || [];      
-
-      setRawData(data as NewsCardData[]);
-
-      // 유저 프로필 정보 가져오기
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("tickers, card_sort_order")
-        .eq("id", userId)
-        .maybeSingle();
+      setRawData((json.data ?? []) as NewsCardData[]);
+      setUserTickers(json.userTickers ?? []);
 
       if (profile) {
-        setUserTickers(profile.tickers ?? []);
         setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
       }
 
     } catch (error) {
       console.error('데이터 로드 실패:', error);
-      setRawData([]);
+      if (!isSilent) setRawData([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInitialData();
+    fetchInitialData(false);
 
-    const handleFocus = () => { fetchInitialData(); };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    const handleFocus = () => { 
+    fetchInitialData(true); 
+  };
+  
+  window.addEventListener('focus', handleFocus);
+  return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   if (isLoading) {
