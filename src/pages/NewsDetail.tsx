@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from '../lib/supabase';
 import type { NewsCardData } from '../types/news';
 import { Header } from "../components/layout/Header"
@@ -12,31 +12,31 @@ import defaultThumb from "../assets/thumb_img.jpg";
 export const NewsDetail = () => {  
 
   const { id } = useParams();
-  const navigate = useNavigate();
-  const [news, setNews] = useState<NewsCardData | null>(null);
-  const [showToast, setShowToast] = useState(false);
-
+  const navigate = useNavigate();  
   const location = useLocation();
   const groupTicker = location.state?.groupTicker;
 
-  const articles: NewsCardData[] = location.state?.articles ?? [];
+  const articles: NewsCardData[] = useMemo(() => 
+    location.state?.articles ?? [], 
+    [location.state?.articles]
+  );
+
+  const news = useMemo(() => 
+    articles.find(a => a.id === id) || null, 
+    [articles, id]
+  );
+
+  const [showToast, setShowToast] = useState(false); 
   const currentIndex = articles.findIndex(a => a.id === id);
 
-  useEffect(() => {
-    const fetchDetailAndMarkAsRead = async () => {
+  useEffect(() => {  
     
-    const { data } = await supabase
-      .from('news_articles')
-      .select('*')
-      .eq('id', id)
-      .single();
+    if (!news || !id) return;
 
-    if (data) {
-      setNews(data);
-      
+    const markAsRead = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && id) {
-        try {          
+        try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
           await fetch(`${API_BASE_URL}/news/${id}/read?userId=${session.user.id}`, {
             method: 'POST',
@@ -45,18 +45,15 @@ export const NewsDetail = () => {
           console.error("백엔드 읽음 처리 실패:", err);
         }
       }
-    }
-  };
+    };
+    markAsRead();
 
-  fetchDetailAndMarkAsRead();
-
-    if (id) {
-      const read = JSON.parse(localStorage.getItem('readNews') ?? '[]');
-      if (!read.includes(id)) {
-        localStorage.setItem('readNews', JSON.stringify([...read, id]));
-      }
+    // 로컬스토리지 저장
+    const read = JSON.parse(localStorage.getItem('readNews') ?? '[]');
+    if (!read.includes(id)) {
+      localStorage.setItem('readNews', JSON.stringify([...read, id]));
     }
-  }, [id]);
+  }, [id, news]); 
 
   if (!news) {
     return <div className="p-10 text-center">로딩 중...</div>;
