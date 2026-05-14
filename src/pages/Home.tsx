@@ -22,61 +22,50 @@ export const Home = () => {
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
 
   const startTimeRef = useRef<number>(Date.now());
-  const hasFiredFeedViewed = useRef(false);
+  const hasFiredFeedViewed = useRef(false); // 주석 처리된 곳에서 쓰던 ref 다시 추가
 
+  // [수정] groupedNews useMemo 로직
   const groupedNews = useMemo(() => {
-    if (!rawData || rawData.length === 0) return [];
+    // rawData가 없더라도 userTickers가 있으면 빈 섹션이라도 띄워야 하므로 length 체크 방식 변경
+    const safeRawData = rawData || [];
 
-    const sortedData = [...rawData].sort((a, b) => {
-      // 읽음 상태 비교
+    // 1. 데이터 정렬
+    const sortedData = [...safeRawData].sort((a, b) => {
       const aRead = !!a.is_read;
       const bRead = !!b.is_read;
+      if (aRead !== bRead) return aRead ? 1 : -1;
 
-      if (aRead !== bRead) {
-        return aRead ? 1 : -1;
-      }
-      
-      // 정렬 버튼
       if (sortType === 'power') {
         return Math.abs(b.sentimentScore || 0) - Math.abs(a.sentimentScore || 0);
       }
       return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
 
-    // 티커별 그룹화
+    // 2. 티커별 그룹화 (모든 관심 티커를 빈 배열로 먼저 초기화)
     const groups: { [key: string]: NewsCardData[] } = {};
+    userTickers.forEach(ticker => {
+      groups[ticker] = [];
+    });
 
+    // 3. 기사 분배
     sortedData.forEach((article) => {
       const tickerList = (article.tickers && article.tickers.length > 0) ? article.tickers : ['NULL'];
-
       tickerList.forEach((t) => {
-        if (!userTickers.includes(t)) return;
-        if (!groups[t]) groups[t] = [];
-        if (!groups[t].find(item => item.id === article.id)) {
+        // 관심 종목(groups 키)에 있을 때만 기사 추가
+        if (groups[t] && !groups[t].find(item => item.id === article.id)) {
           groups[t].push(article);
         }
       });
     });
 
+    // 4. 결과 반환 및 정렬
     return Object.keys(groups)
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({
         tickerName: name,
         articles: groups[name],
       }));
-  }, [rawData, sortType, userTickers]);
-
-  // [B-01] feed_viewed
-  useEffect(() => {
-    if (!isLoading && groupedNews.length > 0 && !hasFiredFeedViewed.current) {
-      trackEvent("feed_viewed", {
-        total_decks: groupedNews.length,
-        total_tickers: groupedNews.length,
-        sort_method: sortType
-      });
-      hasFiredFeedViewed.current = true;
-    }
-  }, [isLoading, groupedNews.length, sortType]);
+  }, [rawData, sortType, userTickers]); // <-- 이 닫는 부분이 빠졌었습니다!
 
   // 정렬 버튼 핸들러
   const handleSortUpdate = async (newMethod: 'time' | 'power') => {
@@ -126,28 +115,24 @@ export const Home = () => {
 
   const fetchInitialData = async (isSilent = false) => {
     try {
-      if (!isSilent) {
-      setIsLoading(true);
-    }
+      if (!isSilent) setIsLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
       const userId = session.user.id;
 
-      // 필터링된 최신 뉴스 가져오기
       const [json, profile] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`)
           .then(res => {
             if (!res.ok) throw new Error(`Server Error: ${res.status}`);
             return res.json();
           }),
-        
         supabase.from("user_profiles")
           .select("card_sort_order")
           .eq("id", userId)
           .maybeSingle()
           .then(res => res.data)
-      ]);    
+      ]);
 
       setRawData((json.data ?? []) as NewsCardData[]);
       setUserTickers(json.userTickers ?? []);
@@ -155,7 +140,6 @@ export const Home = () => {
       if (profile) {
         setSortType(profile.card_sort_order === 'power' ? 'power' : 'time');
       }
-
     } catch (error) {
       console.error('데이터 로드 실패:', error);
       if (!isSilent) setRawData([]);
@@ -166,19 +150,15 @@ export const Home = () => {
 
   useEffect(() => {
     fetchInitialData(false);
-
-    const handleFocus = () => { 
-    fetchInitialData(true); 
-  };
-  
-  window.addEventListener('focus', handleFocus);
-  return () => window.removeEventListener('focus', handleFocus);
+    const handleFocus = () => { fetchInitialData(true); };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
   }
-  
+
   return (
     <>
       <Header type="main" />
@@ -189,17 +169,13 @@ export const Home = () => {
             className={`w-18 h-9 rounded-[10px] font-semibold text-sm transition-all ${
               sortType === 'time' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
             }`}
-          >
-            최신순
-          </button>
+          >최신순</button>
           <button 
             onClick={() => handleSortUpdate('power')}
             className={`w-18 h-9 rounded-[10px] font-semibold text-sm transition-all ${
               sortType === 'power' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
             }`}
-          >
-            파워순
-          </button>
+          >파워순</button>
         </div>
 
         {groupedNews.length === 0 ? (
@@ -216,29 +192,35 @@ export const Home = () => {
                 <div className={`custom-pagination-${group.tickerName} text-sm font-medium text-gray-500`} />
               </div>
 
-              <Swiper
-                key={`${group.tickerName}-${sortType}`} // 정렬 변경 시 Swiper 내부 인덱스 초기화를 위해 key 추가
-                onSlideChange={(swiper) => handleSlideChange(swiper, group.articles, group.tickerName)}
-                modules={[Pagination, EffectCoverflow]}
-                effect={'coverflow'}
-                coverflowEffect={{ rotate: 0, stretch: 0, depth: 100, modifier: 1, scale: 0.9, slideShadows: false }}
-                centeredSlides={true}
-                slidesPerView={1.1}
-                spaceBetween={5}
-                grabCursor={true}
-                pagination={{ el: `.custom-pagination-${group.tickerName}`, type: 'fraction' }}
-              >
-                {group.articles.map((article, index) => (
-                  <SwiperSlide key={`${group.tickerName}-${article.id}`}>
-                    <SwipeCard 
-                      data={article} 
-                      groupTicker={group.tickerName} 
-                      articles={group.articles} 
-                      index={index} 
-                    />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              {group.articles.length === 0 ? (
+                <div className="px-4 py-10 text-center text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-2xl mx-4">
+                  현재 {group.tickerName} 관련 뉴스가 없습니다.
+                </div>
+              ) : (
+                <Swiper
+                  key={`${group.tickerName}-${sortType}`}
+                  onSlideChange={(swiper) => handleSlideChange(swiper, group.articles, group.tickerName)}
+                  modules={[Pagination, EffectCoverflow]}
+                  effect={'coverflow'}
+                  coverflowEffect={{ rotate: 0, stretch: 0, depth: 100, modifier: 1, scale: 0.9, slideShadows: false }}
+                  centeredSlides={true}
+                  slidesPerView={1.1}
+                  spaceBetween={5}
+                  grabCursor={true}
+                  pagination={{ el: `.custom-pagination-${group.tickerName}`, type: 'fraction' }}
+                >
+                  {group.articles.map((article, index) => (
+                    <SwiperSlide key={`${group.tickerName}-${article.id}`}>
+                      <SwipeCard 
+                        data={article} 
+                        groupTicker={group.tickerName} 
+                        articles={group.articles} 
+                        index={index} 
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              )}
             </section>
           ))
         )}
