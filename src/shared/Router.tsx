@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase';
 import { usePageView } from "../hooks/usePageView.ts";
 //라우터
-import { Home } from '../pages/Home';
+import { Home } from '../pages/Home.tsx';
+import { HomeOld } from '../pages/HomeOld.tsx';
 import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
 import { SignUp } from "../pages/SignUp.tsx";
@@ -87,6 +88,7 @@ const Router = () => {
                 : <Home />
           } 
         />
+        <Route path="/like" element={isLoggedIn ? <HomeOld /> : <Navigate to="/login" />} />
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
         <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />
