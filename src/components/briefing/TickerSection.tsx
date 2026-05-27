@@ -49,7 +49,7 @@ export const TickerSection = ({ group }: { group: { tickerName: string; articles
       {/* 고정 영역 */}
       <div className="px-4 pt-6 pb-0">
         <h3 className="mb-4 text-2xl font-bold">{group.tickerName}</h3>
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex gap-6">
             {['뉴스', '요약', '보조지표'].map((tab, i) => (
               <button
