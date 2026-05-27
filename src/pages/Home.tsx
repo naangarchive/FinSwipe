@@ -4,6 +4,7 @@ import type { NewsCardData } from "../types/news";
 import { TickerSection } from "../components/briefing/TickerSection";
 
 // Swiper 라이브러리
+import type { Swiper as SwiperClass } from 'swiper/types';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -17,6 +18,7 @@ export const Home = () => {
   const [rawData, setRawData] = useState<NewsCardData[]>([]);
   const [userTickers, setUserTickers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mainSwiper, setMainSwiper] = useState<SwiperClass | null>(null);
 
   const groupedNews = useMemo(() => {
     const safeRawData = rawData || [];
@@ -80,10 +82,34 @@ export const Home = () => {
 
   useEffect(() => {
     fetchInitialData(false);
+    
     const handleFocus = () => { fetchInitialData(true); };
     window.addEventListener('focus', handleFocus);
+    
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  useEffect(() => {
+    // 로딩 완료 + 데이터 있음 + 스와이퍼 렌더링 완료 상태일 때만 실행
+    if (!isLoading && groupedNews.length > 0 && mainSwiper) {
+      const targetTicker = sessionStorage.getItem('scrollTargetTicker');
+      
+      if (targetTicker) {
+        const targetIndex = groupedNews.findIndex(g => g.tickerName === targetTicker);
+        
+        if (targetIndex !== -1) {
+          // 약간의 딜레이를 주어야 Swiper가 완전히 그려진 후 안전하게 이동합니다.
+          setTimeout(() => {
+            mainSwiper.slideTo(targetIndex, 0);
+            sessionStorage.removeItem('scrollTargetTicker');
+          }, 100);
+        } else {
+          // 만약 티커를 못 찾았다면 찌꺼기가 남지 않게 지워줍니다.
+          sessionStorage.removeItem('scrollTargetTicker');
+        }
+      }
+    }
+  }, [isLoading, groupedNews, mainSwiper]);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
@@ -104,6 +130,7 @@ export const Home = () => {
             slidesPerView={1}
             style={{ height: 'calc(100dvh - 186px)' }}
             modules={[Pagination]}
+            onSwiper={setMainSwiper}
           >
             {groupedNews.map((group) => (
               <SwiperSlide key={group.tickerName}>

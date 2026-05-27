@@ -17,6 +17,8 @@ export const Article = ({ data, groupTicker, articles }: {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
+    sessionStorage.setItem('scrollTargetTicker', groupTicker);
+    
     navigate(`/detail/${data.id}`, { state: {groupTicker, articles} });
   };
 
@@ -28,7 +30,7 @@ export const Article = ({ data, groupTicker, articles }: {
       className={`overflow-hidden flex gap-3 w-full min-h-26 p-4  bg-white border border-gray-200 rounded-[14px]
         ${isRead ? 'opacity-40 grayscale-20' : 'opacity-100'}
     `}>
-      <div className="grow">
+      <div className="flex flex-col justify-between grow">
         <p className="text-base font-medium text-gray-900">{data.headlineKo}</p>
         <div className="flex gap-1 mt-1">
           <p className="text-xs text-gray-500">{getSourceName(data.sourceUrl)}</p>
