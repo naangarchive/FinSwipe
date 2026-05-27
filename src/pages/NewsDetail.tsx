@@ -169,7 +169,7 @@ export const NewsDetail = () => {
       )}
 
       {/* 본문 요약영역 */}
-      <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.contentPreview}</div>
+      {/* <div className="p-5 rounded-2xl border border-gray-200 bg-white text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{news.contentPreview}</div> */}
 
       {/* 하단버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full min-w-80 max-w-107.5 z-50">
