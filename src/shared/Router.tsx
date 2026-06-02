@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { supabase } from '../lib/supabase';
+// import { supabase } from '../lib/supabase';
 import { usePageView } from "../hooks/usePageView.ts";
 //라우터
 import { Home } from '../pages/Home.tsx';
@@ -26,38 +26,18 @@ const Router = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const token = localStorage.getItem('accessToken');
       
-      if (!session) {
+      if (!token) {
         setIsLoggedIn(false);
         return;
       }
 
       setIsLoggedIn(true);
-
-      // tickers 확인
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('tickers')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      setHasTickers(data?.tickers?.length > 0);
+      setHasTickers(true); // API로 대체 해야됨
     };
 
     checkAuth();
-
-    // 로그인 상태 변화 감지
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setIsLoggedIn(false);
-        setHasTickers(null);
-      } else {
-        setIsLoggedIn(true);
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   // 로딩 중

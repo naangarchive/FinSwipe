@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { supabase } from "../lib/supabase";
 import type { NewsCardData } from "../types/news";
 import { TickerSection } from "../components/briefing/TickerSection";
 
@@ -59,17 +58,26 @@ export const Home = () => {
   const fetchInitialData = async (isSilent = false) => {
     try {
       if (!isSilent) setIsLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
 
-      const userId = session.user.id;
+      const userId = localStorage.getItem('userId');     
 
-      const json = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Server Error: ${res.status}`);
-        return res.json();
+      if (!userId) {
+        console.error('로그인 정보가 없습니다.');
+        setIsLoading(false);
+        return; 
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
       });
 
+      if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+      const json = await response.json();
+      
       setRawData((json.data ?? []) as NewsCardData[]);
       setUserTickers(json.userTickers ?? []);
     } catch (error) {
