@@ -44,9 +44,9 @@ const Router = () => {
           }
         });
         if (response.ok) {
-          const tickers = await response.json();
+          const data = await response.json();
           // 티커가 하나라도 있으면 true, 없으면 false
-          setHasTickers(tickers.length > 0); 
+          setHasTickers(Array.isArray(data.tickers) ? data.tickers.length > 0 : false);
         } else {
           setHasTickers(false);
         }
