@@ -33,6 +33,11 @@ export const Navigation = ({ showDisclaimer = false }: NavigationProps) => {
     setTimeout(() => setShowToast(false), 2000);
     return;
   }
+
+  if (path === '/') {
+    window.dispatchEvent(new Event('homeRefresh'));
+  }
+  
   navigate(path);
 };
 

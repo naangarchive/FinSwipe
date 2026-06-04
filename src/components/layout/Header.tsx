@@ -53,7 +53,14 @@ export const Header = ({ type, title }: HeaderProps) => {
       )}
       {(type === 'detail' || type === 'sub') && (
         <div className="flex items-center gap-4">
-          <button onClick={() => type === 'detail' ? navigate('/') : navigate(-1)} className="w-10 h-10 cursor-pointer">
+          <button onClick={() => {
+            if (type === 'detail') {
+              window.dispatchEvent(new Event('homeRefresh'));
+              navigate('/');
+            } else {
+              navigate(-1);
+            }
+          }} className="w-10 h-10 cursor-pointer">
             <img src={back} alt="뒤로가기" />
           </button>
           <h1 className="text-xl font-bold text-gray-900">{title}</h1>        

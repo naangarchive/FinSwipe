@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import type { NewsCardData } from "../types/news";
 import { TickerSection } from "../components/briefing/TickerSection";
 
@@ -56,44 +56,53 @@ export const Home = () => {
       }));
   }, [rawData, userTickers]);
 
+  const lastFetchTime = useRef(0);
+
   const fetchInitialData = async (isSilent = false) => {
+    const now = Date.now();
+    if (now - lastFetchTime.current < 2000) return;
+    lastFetchTime.current = now;
+
     try {
       if (!isSilent) setIsLoading(true);
 
-      const userId = localStorage.getItem('userId');     
+      const userId = localStorage.getItem('userId');
+      const accessToken = localStorage.getItem('accessToken');
 
-      if (!userId) {
+      if (!userId || !accessToken) {
         console.error('로그인 정보가 없습니다.');
-        setIsLoading(false);
-        return; 
+        if (!isSilent) setIsLoading(false);
+        return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // 뉴스 + 프로필 동시 호출
+      const [newsResponse, profileResponse] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/news/latest?userId=${userId}&limit=50&offset=0`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        })
+      ]);
 
-      if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-      const json = await response.json();
-      
+      if (!newsResponse.ok) throw new Error(`Server Error: ${newsResponse.status}`);
+      const json = await newsResponse.json();
       setRawData((json.data ?? []) as NewsCardData[]);
       setUserTickers(json.userTickers ?? []);
+
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
+        if (profile.newsSort) setSortType(profile.newsSort);
+      }
+
     } catch (error) {
       console.error('데이터 로드 실패:', error);
       if (!isSilent) setRawData([]);
     } finally {
       setIsLoading(false);
-    }
-
-    const profileResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
-    });
-    if (profileResponse.ok) {
-      const profile = await profileResponse.json();
-      if (profile.newsSort) setSortType(profile.newsSort);
     }
   };
 
@@ -120,11 +129,13 @@ export const Home = () => {
 
   useEffect(() => {
     fetchInitialData(false);
-    
-    const handleFocus = () => { fetchInitialData(true); };
-    window.addEventListener('focus', handleFocus);
-    
-    return () => window.removeEventListener('focus', handleFocus);
+
+    const handleRefresh = () => { fetchInitialData(true); };
+    window.addEventListener('homeRefresh', handleRefresh);
+
+    return () => {
+      window.removeEventListener('homeRefresh', handleRefresh);
+    };
   }, []);
 
   useEffect(() => {
