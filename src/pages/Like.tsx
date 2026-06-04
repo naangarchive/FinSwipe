@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { searchTickerNames } from "../api/tickerService";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
 import type { TickerNameInfo } from "../types/tickers";
 import { StockCard } from "../components/setup/StockCard";
 import { Navigation } from "../components/layout/Navigation"
@@ -17,6 +16,9 @@ export const Like = () => {
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const token = localStorage.getItem('accessToken');
+
   useEffect(() => {
     const loadInitial = async () => {
     // 초기 50개 로드
@@ -24,18 +26,18 @@ export const Like = () => {
     setStocks(stocks);
 
     // 기존 저장된 티커 불러오기
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('tickers')
-      .eq('id', session.user.id)
-      .single();
-
-    if (data?.tickers) {
-      setSelectedTickers(data.tickers);
-    }
+    if (!token) return;
+      try {
+        const response = await fetch(`${API_BASE_URL}/user/tickers`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSelectedTickers(Array.isArray(data.tickers) ? data.tickers : []);
+        }
+      } catch (error) {
+        console.error("관심 티커 불러오기 실패:", error);
+      }
   };
     loadInitial();
   }, []);
@@ -62,22 +64,28 @@ export const Like = () => {
   const clearAll = () => setSelectedTickers([]);
 
   //데이터 저장
-  const handleSave = async () => {
-    const { data: {session} } = await supabase.auth.getSession();
-    if(!session) return alert("로그인이 필요합니다.");
+  const handleSave = async () => {    
+    if(!token) return alert("로그인이 필요합니다.");
 
-    const { error } = await supabase
-    .from('user_profiles')
-    .update({tickers: selectedTickers})
-    .eq('id', session.user.id);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/tickers`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tickers: selectedTickers }),
+      });
 
-    if(error){
-      alert("저장에 실패했습니다.");
-    }else {
+      if (!response.ok) throw new Error("저장 실패");
+
       alert("관심 종목이 저장되었습니다.");
       setTimeout(() => {
         navigate("/", { replace: true });
       }, 100);
+    } catch (error) {
+      console.error("관심 티커 저장 실패:", error);
+      alert("저장에 실패했습니다.");
     }
   };  
   
