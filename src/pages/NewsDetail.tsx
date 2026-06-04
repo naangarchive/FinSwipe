@@ -1,6 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
-import { supabase } from '../lib/supabase';
 import type { NewsCardData } from '../types/news';
 import { Header } from "../components/layout/Header"
 //유틸리티
@@ -34,16 +33,19 @@ export const NewsDetail = () => {
     if (!news || !id) return;
 
     const markAsRead = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && id) {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-          await fetch(`${API_BASE_URL}/news/${id}/read?userId=${session.user.id}`, {
-            method: 'POST',
-          });
-        } catch (err) {
-          console.error("백엔드 읽음 처리 실패:", err);
-        }
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken || !id) return;
+
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        await fetch(`${API_BASE_URL}/news/${id}/read`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+      } catch (err) {
+        console.error("백엔드 읽음 처리 실패:", err);
       }
     };
     markAsRead();

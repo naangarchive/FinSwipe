@@ -18,6 +18,7 @@ export const Home = () => {
   const [userTickers, setUserTickers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mainSwiper, setMainSwiper] = useState<SwiperClass | null>(null);
+  const [sortType, setSortType] = useState<'time' | 'power'>('time');
 
   const groupedNews = useMemo(() => {
     const safeRawData = rawData || [];
@@ -86,6 +87,35 @@ export const Home = () => {
     } finally {
       setIsLoading(false);
     }
+
+    const profileResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
+    });
+    if (profileResponse.ok) {
+      const profile = await profileResponse.json();
+      if (profile.newsSort) setSortType(profile.newsSort);
+    }
+  };
+
+  const handleSortUpdate = async (newMethod: 'time' | 'power') => {
+    if (sortType === newMethod) return;
+    setSortType(newMethod);
+
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return;
+
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/news-sort`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sort: newMethod }),
+      });
+    } catch (err) {
+      console.error("정렬 저장 실패:", err);
+    }
   };
 
   useEffect(() => {
@@ -149,7 +179,7 @@ export const Home = () => {
                     <p className="text-gray-400 text-sm">현재 {group.tickerName} 관련 뉴스가 없습니다.</p>
                   </div>
                 ) : (
-                  <TickerSection group={group} />
+                  <TickerSection group={group} sortType={sortType} onSortUpdate={handleSortUpdate} />
                 )}
               </SwiperSlide>
             ))}

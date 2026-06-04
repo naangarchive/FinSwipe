@@ -3,46 +3,39 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperClass } from 'swiper/types';
 import { Article } from '../briefing/Article';
 import type { NewsCardData } from "../../types/news";
-import { supabase } from "../../lib/supabase";
 
-export const TickerSection = ({ group }: { group: { tickerName: string; articles: NewsCardData[] } }) => {
+export const TickerSection = ({
+  group,
+  sortType,
+  onSortUpdate
+}: {
+  group: { tickerName: string; articles: NewsCardData[] };
+  sortType: 'time' | 'power';
+  onSortUpdate: (method: 'time' | 'power') => void;
+}) => {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [swiperInstance, setSwiperInstance] = useState<SwiperClass | null>(null);
-  const [sortType, setSortType] = useState<'time' | 'power'>('time');
+  const [swiperInstance, setSwiperInstance] = useState<SwiperClass | null>(null);  
   const [page, setPage] = useState(0);
   const pageSize = 5;
 
   const sortedArticles = useMemo(() => {
     if (!group.articles || group.articles.length === 0) return [];
-    
     return [...group.articles].sort((a, b) => {
       if (sortType === 'power') {
         return Math.abs(b.sentimentScore || 0) - Math.abs(a.sentimentScore || 0);
-      }      
+      }
       return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
   }, [group.articles, sortType]);
 
+  const handleSortUpdate = (newMethod: 'time' | 'power') => {
+    setPage(0);
+    onSortUpdate(newMethod);
+  };
+
   const pagedArticles = sortedArticles.slice(page * pageSize, (page + 1) * pageSize);
   const hasPrev = page > 0;
   const hasNext = (page + 1) * pageSize < sortedArticles.length;
-
-  // 정렬 버튼 핸들러
-  const handleSortUpdate = async (newMethod: 'time' | 'power') => {
-    if (sortType === newMethod) return;
-
-    setSortType(newMethod);
-    setPage(0);
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await supabase
-        .from("user_profiles")
-        .update({ card_sort_order: newMethod === 'time' ? 'latest' : 'power' })
-        .eq("id", session.user.id);
-    }
-  };
-
 
   return (
     <div className="flex flex-col h-full">
