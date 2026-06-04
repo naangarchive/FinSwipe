@@ -26,7 +26,7 @@ const Router = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');      
       
       if (!token) {
         setIsLoggedIn(false);
@@ -34,10 +34,46 @@ const Router = () => {
       }
 
       setIsLoggedIn(true);
-      setHasTickers(true); // API로 대체 해야됨
+
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    
+        const response = await fetch(`${API_BASE_URL}/user/tickers`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const tickers = await response.json();
+          // 티커가 하나라도 있으면 true, 없으면 false
+          setHasTickers(tickers.length > 0); 
+        } else {
+          setHasTickers(false);
+        }
+      } catch (error){
+        console.error("관심 종목 설정 여부 확인 실패:", error);
+      setHasTickers(false);
+      }      
     };
 
     checkAuth();
+
+    // 로그아웃
+    const handleLogout = () => {
+      setIsLoggedIn(false);
+      setHasTickers(null);
+    };
+
+    const handleLogin = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('logout', handleLogout);
+    window.addEventListener('login', handleLogin);
+    return () => {
+      window.removeEventListener('logout', handleLogout);
+      window.removeEventListener('login', handleLogin);
+    };
   }, []);
 
   // 로딩 중
@@ -68,7 +104,7 @@ const Router = () => {
                 : <Home />
           } 
         />
-        <Route path="/like" element={isLoggedIn ? <HomeOld /> : <Navigate to="/login" />} />
+        <Route path="/old" element={isLoggedIn ? <HomeOld /> : <Navigate to="/login" />} />
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
         <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />

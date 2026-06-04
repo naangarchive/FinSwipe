@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from '../lib/supabase';
 //컴포넌트
 import { Navigation } from "../components/layout/Navigation"
 import { MenuItem } from "../components/my/MenuItem"
@@ -11,20 +10,64 @@ import Logout from "../assets/ic_logout.svg";
 
 export const My = () => {
   const navigate = useNavigate();  
-  const [userEmail, setUserEmail] = useState("");
-
+  const [email, setEmail] = useState("");
+  
   //유저 정보 가져오기
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem('accessToken');
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) throw new Error("프로필 정보를 불러올 수 없습니다.");
+
+      const data = await response.json();
+      console.log('API 응답:', data);
+      
+      setEmail(data.email);
+
+      // 로컬 스토리지도 최신 정보로 갱신
+      if (data.email) {
+        setEmail(data.email);
+        localStorage.setItem('email', data.email);
+      }
+      if (data.display_name) localStorage.setItem('displayName', data.display_name);
+      
+    } catch (error) {
+      console.error("프로필 로드 에러:", error);
+    }
+  };
+
+  // useEffect에서 호출
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserEmail(session?.user.email ?? "");
-    };
-    getUser();
+    const savedEmail = localStorage.getItem('email');
+    if (savedEmail && savedEmail !== 'undefined') {
+      setEmail(savedEmail);
+    }
+
+    fetchUserProfile();
   }, []);
 
   //로그아웃
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('email');
+    localStorage.removeItem('displayName');
+
+    window.dispatchEvent(new Event('logout'));
     navigate('/login');
   };
 
@@ -45,7 +88,7 @@ export const My = () => {
       <div className="flex items-center gap-4 border-t border-t-gray-100 px-4 py-6 bg-white">
         <img src={Profile} alt="" />
         <div className="flex flex-col gap-2">
-          <p className="text-base font-medium text-gray-900">{userEmail}</p>
+          <p className="text-base font-medium text-gray-900">{email}</p>
           <button onClick={handleLogout} className="w-fit flex items-center gap-2 h-7 px-3 rounded-lg text-sm font-medium text-gray-700 bg-gray-100">
             <img src={Logout} alt="" />
             로그아웃

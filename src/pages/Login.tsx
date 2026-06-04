@@ -24,11 +24,13 @@ export const Login = () => {
       if (!response.ok) throw new Error("서버 인증 실패");
 
       const data = await response.json();
-      console.log('응답 데이터:', data);
+
       localStorage.setItem('accessToken', data.access_token);
       localStorage.setItem('userId', data.user_id);
       localStorage.setItem('email', data.email);
       localStorage.setItem('displayName', data.display_name);
+
+      window.dispatchEvent(new Event('login'));
 
       navigate('/');
     } catch (error) {
