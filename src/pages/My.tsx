@@ -34,7 +34,7 @@ export const My = () => {
       if (!response.ok) throw new Error("프로필 정보를 불러올 수 없습니다.");
 
       const data = await response.json();
-      console.log('API 응답:', data);
+      console.log(':', data);
       
       setEmail(data.email);
 

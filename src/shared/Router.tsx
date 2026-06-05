@@ -14,6 +14,7 @@ import { Like } from "../pages/Like.tsx";
 import { My } from "../pages/My.tsx";
 import { ProfileEdit } from "../pages/ProfileEdit.tsx";
 import { Settings } from "../pages/Settings.tsx";
+import { Quiz } from "../pages/Quiz.tsx";
 
 const PageViewTracker = () => {
   usePageView();
@@ -110,6 +111,7 @@ const Router = () => {
         <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />
         <Route path="/profileEdit" element={isLoggedIn ? <ProfileEdit /> : <Navigate to="/login" />} />
         <Route path="/settings" element={isLoggedIn ? <Settings /> : <Navigate to="/login" />} />
+        <Route path="/quiz" element={isLoggedIn ? <Quiz /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
