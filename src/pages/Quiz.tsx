@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 //컴포넌트
 import { Header } from "../components/layout/Header";
 import { Navigation } from "../components/layout/Navigation"
@@ -132,9 +133,15 @@ export const Quiz = () => {
     { key: '리스크관리', color: 'bg-red-500', desc: '베타계수·변동성·포트폴리오 분산·손절매 등 손실 방어 전략' },
   ];
 
+  const radarData = areaConfig.map(({ key }) => ({
+    subject: key,
+    score: finalResult?.area_stats?.[key]?.score ?? 0,
+    fullMark: 5,
+  }));
+
   // 결과 화면
   if (finalResult) {
-    return (
+    return (      
       <>
         <Header type="sub" title="퀴즈 결과" />
         <div className="flex flex-col items-center px-4 py-6 gap-6 text-center">
@@ -145,6 +152,31 @@ export const Quiz = () => {
               <p className="text-xl font-bold text-gray-900">{finalResult.tendency}</p>              
             </div>
           </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <RadarChart data={radarData} outerRadius={80}>
+              <PolarGrid stroke="#E5E7EB" />
+              <PolarAngleAxis 
+                dataKey="subject"
+                tick={({ x, y, payload, index }) => {
+                  const score = radarData[index]?.score ?? 0;
+                  return (
+                    <text x={x} y={y} textAnchor="middle" dominantBaseline="central">
+                      <tspan x={x} dy="-0.5em" fontSize={10} fontWeight="500" fill="#374151">{payload.value}</tspan>
+                      <tspan x={x} dy="1.3em" fontSize={9} fontWeight="700" fill="#0064FF">{score}/5</tspan>
+                    </text>
+                  );
+                }}
+              />
+              <Radar 
+                dataKey="score"
+                fill="#0064FF"
+                fillOpacity={0.12}
+                stroke="#0064FF"
+                strokeWidth={2}
+                dot={{ fill: "#2563eb", r: 2 }}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
           <div className="w-full p-4 rounded-[14px] border border-emerald-100 bg-emerald-50">
             <p className="text-sx font-semibold text-emerald-600">💪 강한 영역</p>
             <p className="text-base font-bold text-gray-900">{finalResult.strongest_area}</p>
@@ -185,7 +217,7 @@ export const Quiz = () => {
   return (
     <>
       <Header type="main" />
-      <div className="px-4 space-y-4">
+      <div className="px-4 pb-40 space-y-4">
         <div className="flex items-center gap-2 pt-6">
           <div className="relative grow h-2 rounded-2xl bg-gray-100">
             <p 
