@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validateEmail } from "../utils/validation";
 import { GoogleLogin } from '@react-oauth/google';
+import { getWebPushToken } from '../lib/firebase';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { Capacitor } from '@capacitor/core';
 //컴포넌트
@@ -56,23 +57,31 @@ export const Login = () => {
     // 푸시 알림 토큰
     try {
       const check = await FirebaseMessaging.checkPermissions();
-      let finalPermission = check.receive;
-
-      if (finalPermission === 'prompt') {
-        const permission = await FirebaseMessaging.requestPermissions();
-        finalPermission = permission.receive;
-      }
+      const finalPermission = check.receive;
 
       if (finalPermission === 'granted') {
-        const { token } = await FirebaseMessaging.getToken();
-        await fetch(`${API_BASE_URL}/news/device-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${loginData.access_token}`,
-          },
-          body: JSON.stringify({ token, platform: Capacitor.isNativePlatform() ? 'android' : 'web' }),
-        });
+        let token = '';
+        
+        if (Capacitor.isNativePlatform()) {
+          // 앱: Capacitor 플러그인 사용
+          const result = await FirebaseMessaging.getToken();
+          token = result.token;
+        } else {
+          // 웹: getWebPushToken 사용 (vapidKey 포함)
+          const webToken = await getWebPushToken();
+          if (webToken) token = webToken;
+        }
+
+        if (token) {
+          await fetch(`${API_BASE_URL}/news/device-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${loginData.access_token}`,
+            },
+            body: JSON.stringify({ token, platform: Capacitor.isNativePlatform() ? 'android' : 'web' }),
+          });
+        }
       }
     } catch (err) {
       console.error("푸시 알림 설정 중 에러 발생:", err);

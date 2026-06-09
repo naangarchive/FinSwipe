@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-// import { supabase } from '../lib/supabase';
 import { usePageView } from "../hooks/usePageView.ts";
 //라우터
 import { Home } from '../pages/Home.tsx';
