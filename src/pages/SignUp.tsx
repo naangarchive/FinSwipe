@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { validateEmail, validatePassword, validatePasswordMatch, validateLoginId } from "../utils/validation";
-import { supabase } from '../lib/supabase';
 //컴포넌트
 import { Header } from "../components/layout/Header"
 import { Input } from "../components/common/input";
@@ -35,19 +34,19 @@ export const SignUp = () => {
     if (!formData.email) return alert("이메일을 입력해주세요.");
     if (!validateEmail(formData.email)) return alert("이메일 형식이 올바르지 않습니다.");
 
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('email')
-      .eq('email', formData.email)
-      .maybeSingle();
+    // const { data } = await supabase
+    //   .from('user_profiles')
+    //   .select('email')
+    //   .eq('email', formData.email)
+    //   .maybeSingle();
 
-    if (data) {
-      alert("이미 가입된 이메일입니다.");
-      setIsEmailChecked(false);
-    } else {
-      alert("사용 가능한 이메일입니다.");
-      setIsEmailChecked(true);
-    }
+    // if (data) {
+    //   alert("이미 가입된 이메일입니다.");
+    //   setIsEmailChecked(false);
+    // } else {
+    //   alert("사용 가능한 이메일입니다.");
+    //   setIsEmailChecked(true);
+    // }
   };
 
   // 아이디 중복 검사
