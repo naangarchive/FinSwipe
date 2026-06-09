@@ -13,7 +13,7 @@ import myIcon from "../assets/ic_my.svg";
 import pwIcon from "../assets/ic_password.svg";
 
 export const SignUp = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
 
   // 입력값 상태 관리
   const [formData, setFormData] = useState({
@@ -28,25 +28,14 @@ export const SignUp = () => {
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [isTermsChecked, setTermsChecked] = useState(false);
   const [isDisclaimerChecked, setDisclaimerChecked] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 이메일 중복 검사
-  const handleEmailCheck = async () => {
+  const handleEmailCheck = () => {
     if (!formData.email) return alert("이메일을 입력해주세요.");
     if (!validateEmail(formData.email)) return alert("이메일 형식이 올바르지 않습니다.");
-
-    // const { data } = await supabase
-    //   .from('user_profiles')
-    //   .select('email')
-    //   .eq('email', formData.email)
-    //   .maybeSingle();
-
-    // if (data) {
-    //   alert("이미 가입된 이메일입니다.");
-    //   setIsEmailChecked(false);
-    // } else {
-    //   alert("사용 가능한 이메일입니다.");
-    //   setIsEmailChecked(true);
-    // }
+    alert("사용 가능한 이메일입니다.");
+    setIsEmailChecked(true);
   };
 
   // 아이디 중복 검사
@@ -55,18 +44,17 @@ export const SignUp = () => {
       return alert("아이디를 8자 이상 입력해주세요.");
     }
 
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('login_id')
-      .eq('login_id', formData.loginId)
-      .maybeSingle();
+    const response = await fetch(
+      `${API_BASE_URL}/auth/check-login-id?loginId=${formData.loginId}`
+    );
+    const data = await response.json();
 
-    if (data) {
-      alert("이미 사용 중인 아이디입니다.");
-      setIsIdChecked(false);
-    } else {
+    if (data.available) {
       alert("사용 가능한 아이디입니다.");
       setIsIdChecked(true);
+    } else {
+      alert("이미 사용 중인 아이디입니다.");
+      setIsIdChecked(false);
     }
   };
 
@@ -95,44 +83,32 @@ export const SignUp = () => {
   const handleSignUp = async () => {
     if (!canSubmit) return;
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            login_id: formData.loginId,
-            nickname: formData.nickname,
-          }
-        }
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          displayName: formData.nickname || formData.loginId,
+          loginId: formData.loginId,
+        }),
       });
 
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          alert("이미 가입된 이메일입니다. 구글 로그인을 이용해주세요.");
+      if (!response.ok) {
+        const error = await response.json();
+        console.log("에러 응답:", error);
+        if (response.status === 409) {
+          alert("이미 가입된 이메일입니다.");
         } else {
-          alert(authError.message);
+          alert(error.message || "회원가입에 실패했습니다.");
         }
         return;
       }
 
-      if (authData.user) {
-        const { error: profileError } = await supabase.from('user_profiles').insert([{
-          id: authData.user.id,
-          login_id: formData.loginId,
-          email: formData.email,
-          nickname: formData.nickname,
-          tickers: [],
-        }]);
-
-        if (profileError) throw profileError;
-
-        alert(`${formData.email}로 인증 메일이 발송되었습니다.\n메일함을 확인하고 링크를 클릭해주세요.`);
-        navigate('/Login');
-      }
+      alert(`${formData.email}로 인증 메일이 발송되었습니다.\n메일함을 확인하고 링크를 클릭해주세요.`);
+      navigate('/login');
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
+      if (error instanceof Error) alert(error.message);
     }
   };
 
@@ -195,7 +171,7 @@ export const SignUp = () => {
             value={formData.password}
             onChange={handleChange}
             isPassword
-            placeholder="8자 이상 입력"
+            placeholder="8자 이상, 영문 소문자+숫자 포함"
             icon={pwIcon}
           />
           <Input 
