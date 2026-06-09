@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import type { NewsCardData } from '../../types/news';
 //유틸리티
 import { getTimeAgo } from "../../utils/time";
-import { getSourceName } from "../../utils/format";
 //이미지
 import defaultThumb from "../../assets/thumb_img.jpg";
 
@@ -32,9 +31,16 @@ export const Article = ({ data, groupTicker, articles }: {
     `}>
       <div className="flex flex-col justify-between grow">
         <p className="text-base font-medium text-gray-900">{data.headlineKo}</p>
-        <div className="flex gap-1 mt-1">
-          <p className="text-xs text-gray-500">{getSourceName(data.sourceUrl)}</p>
+        <div className="flex gap-1 items-center mt-1">          
           <p className="text-xs text-gray-500">{getTimeAgo(data.publishedAt)}</p>          
+          <p className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
+            data.sentimentLabel === 'positive' ? 'bg-emerald-50 text-emerald-600' :
+            data.sentimentLabel === 'negative' ? 'bg-rose-50 text-rose-600' :
+            data.sentimentLabel === 'mixed' ? 'bg-yellow-50 text-yellow-600' :
+            'bg-gray-100 text-gray-500'
+          }`}>
+            {Math.floor(data.sentimentScore * 100)}
+          </p>
         </div>
       </div>      
       <div className='overflow-hidden shrink-0 w-16 h-16 rounded-[10px] bg-gray-100'>
