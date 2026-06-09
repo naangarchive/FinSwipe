@@ -1,16 +1,86 @@
-// import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { validateEmail } from "../utils/validation";
 import { GoogleLogin } from '@react-oauth/google';
-
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { Capacitor } from '@capacitor/core';
 //컴포넌트
+import { Input } from "../components/common/input";
+import { Button } from "../components/common/button";
 //이미지
 import Logo from "../assets/logo.svg";
 import LogoTxt from "../assets/logo_tx_white.svg";
 import Google from "../assets/ic_google.svg";
+import MailIcon from "../assets/ic_email.svg";
+import PwIcon from "../assets/ic_password.svg";
 
 export const Login = () => {
   const navigate = useNavigate();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    if (!identifier || !password) return alert("이메일/아이디와 비밀번호를 입력해주세요.");
+
+    let email = identifier;
+
+    // 이메일 형식이 아니면 아이디로 간주 → 이메일 조회
+    if (!validateEmail(identifier)) {
+      const response = await fetch(`${API_BASE_URL}/auth/find-login-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loginId: identifier }),
+      });
+
+      if (!response.ok) return alert("존재하지 않는 아이디입니다.");
+      const data = await response.json();
+      email = data.email;
+    }
+
+    // 이메일로 로그인
+    const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!loginResponse.ok) return alert("비밀번호가 올바르지 않습니다.");
+
+    const loginData = await loginResponse.json();
+    localStorage.setItem('accessToken', loginData.access_token);
+    localStorage.setItem('userId', loginData.user_id);
+    localStorage.setItem('email', loginData.email);
+    localStorage.setItem('displayName', loginData.display_name);
+
+    // 푸시 알림 토큰
+    try {
+      const check = await FirebaseMessaging.checkPermissions();
+      let finalPermission = check.receive;
+
+      if (finalPermission === 'prompt') {
+        const permission = await FirebaseMessaging.requestPermissions();
+        finalPermission = permission.receive;
+      }
+
+      if (finalPermission === 'granted') {
+        const { token } = await FirebaseMessaging.getToken();
+        await fetch(`${API_BASE_URL}/news/device-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${loginData.access_token}`,
+          },
+          body: JSON.stringify({ token, platform: Capacitor.isNativePlatform() ? 'android' : 'web' }),
+        });
+      }
+    } catch (err) {
+      console.error("푸시 알림 설정 중 에러 발생:", err);
+    }
+
+    window.dispatchEvent(new Event('login'));
+    navigate('/');
+  };
 
   // Google 로그인
   const handleGoogleLogin = async (idToken: string) => {
@@ -56,6 +126,31 @@ export const Login = () => {
         </div>
 
         <div className="flex flex-col gap-4">
+          <Input 
+            label="이메일/아이디"
+            placeholder="example@email.com"
+            icon={MailIcon}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
+          <Input
+            label="비밀번호"
+            isPassword
+            placeholder="비밀번호 (8자 이상)"
+            icon={PwIcon}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="flex justify-between">
+            <Link to="/FindEmail" className="text-base font-medium text-gray-600">이메일/아이디 찾기</Link>
+            <Link to="/FindPassword" className="text-base font-medium text-gray-600">비밀번호 찾기</Link>
+          </div>
+          <Button className="mt-10" variant="primary" size="lg" onClick={handleLogin}>로그인</Button>
+          <div className="my-6 flex items-center gap-4">
+            <div className="grow h-px bg-gray-200"></div>
+            <div className="text-sm text-gray-500">또는</div>
+            <div className="grow h-px bg-gray-200"></div>
+          </div>
           <div className="relative w-full h-14">
             {/* 보이는 커스텀 버튼 */}
             <div className="flex items-center justify-center gap-4 w-full h-14 text-base font-semibold text-gray-700 border rounded-xl border-gray-200 pointer-events-none">
