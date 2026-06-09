@@ -15,30 +15,34 @@ export const Like = () => {
   const [stocks, setStocks] = useState<TickerNameInfo[]>([]);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const token = localStorage.getItem('accessToken');
 
   useEffect(() => {
     const loadInitial = async () => {
-    // 초기 50개 로드
-    const stocks = await searchTickerNames("");
-    setStocks(stocks);
+      const token = localStorage.getItem('accessToken');
 
-    // 기존 저장된 티커 불러오기
-    if (!token) return;
-      try {
-        const response = await fetch(`${API_BASE_URL}/user/tickers`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setSelectedTickers(Array.isArray(data.tickers) ? data.tickers : []);
+      // 초기 50개 로드
+      const stocks = await searchTickerNames("");
+      setStocks(stocks);
+
+      // 기존 저장된 티커 불러오기
+      if (!token) return;
+        try {
+          const response = await fetch(`${API_BASE_URL}/user/tickers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const tickers = Array.isArray(data.tickers) ? data.tickers : [];
+            setSelectedTickers(tickers);
+            if (tickers.length === 0) setIsFirstTime(true);
+          }
+        } catch (error) {
+          console.error("관심 티커 불러오기 실패:", error);
         }
-      } catch (error) {
-        console.error("관심 티커 불러오기 실패:", error);
-      }
-  };
+    };
     loadInitial();
   }, []);
 
@@ -65,7 +69,9 @@ export const Like = () => {
 
   //데이터 저장
   const handleSave = async () => {    
-    if(!token) return alert("로그인이 필요합니다.");
+    const token = localStorage.getItem('accessToken');
+    console.log('handleSave token:', token);
+    if(!token) return alert("로그인이 필요합니다.");    
 
     try {
       const response = await fetch(`${API_BASE_URL}/user/tickers`, {
@@ -81,7 +87,7 @@ export const Like = () => {
 
       alert("관심 종목이 저장되었습니다.");
       setTimeout(() => {
-        navigate("/", { replace: true });
+        navigate(isFirstTime ? "/quiz" : "/", { replace: true });
       }, 100);
     } catch (error) {
       console.error("관심 티커 저장 실패:", error);
