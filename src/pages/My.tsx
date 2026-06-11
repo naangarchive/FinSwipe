@@ -11,6 +11,9 @@ import Logout from "../assets/ic_logout.svg";
 export const My = () => {
   const navigate = useNavigate();  
   const [email, setEmail] = useState("");
+  const [tendency, setTendency] = useState("");
+  const [level, setLevel] = useState("");
+  
   
   //유저 정보 가져오기
   const fetchUserProfile = async () => {
@@ -33,10 +36,11 @@ export const My = () => {
 
       if (!response.ok) throw new Error("프로필 정보를 불러올 수 없습니다.");
 
-      const data = await response.json();
-      console.log(':', data);
+      const data = await response.json();      
       
       setEmail(data.email);
+      setTendency(data.tendency);
+      setLevel(data.level);
 
       // 로컬 스토리지도 최신 정보로 갱신
       if (data.email) {
@@ -88,18 +92,20 @@ export const My = () => {
       <div className="flex items-center gap-4 border-t border-t-gray-100 px-4 py-6 bg-white">
         <img src={Profile} alt="" />
         <div className="flex flex-col gap-2">
-          <p className="text-base font-medium text-gray-900">{email}</p>
-          <button onClick={handleLogout} className="w-fit flex items-center gap-2 h-7 px-3 rounded-lg text-sm font-medium text-gray-700 bg-gray-100">
-            <img src={Logout} alt="" />
-            로그아웃
-          </button>
+          {tendency && (
+            <p className="text-lg font-bold text-gray-900">{tendency} Lv.{level}</p>
+          )}
+          <p className="text-sm text-gray-500">{email}</p>
         </div>
       </div>
 
       <div className="bg-gray-50 p-4">
         {/* 메뉴 */}
-        <div className="space-y-2 mb-8">
+        <div className="space-y-2">
           <MenuItem />
+        </div>
+        <div className="text-center py-8">
+          <button onClick={handleLogout} className="text-sm text-gray-500 underline">로그아웃</button>
         </div>
         <NoticeBox contents={noticeBox}/>
         <p className="mt-4 text-center text-xs text-gray-400">v1.0.0 • © 2026 Finswipe</p>
