@@ -6,7 +6,6 @@ import { MenuItem } from "../components/my/MenuItem"
 import { NoticeBox } from "../components/common/NoticeBox"
 //이미지
 import Profile from "../assets/ic_profile.svg";
-import Logout from "../assets/ic_logout.svg";
 
 export const My = () => {
   const navigate = useNavigate();  
