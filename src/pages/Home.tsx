@@ -2,23 +2,18 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import type { NewsCardData } from "../types/news";
 import { TickerSection } from "../components/briefing/TickerSection";
 
-// Swiper 라이브러리
-import type { Swiper as SwiperClass } from 'swiper/types';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
-
 // 컴포넌트
 import { Header } from "../components/layout/Header"
-import { Navigation } from "../components/layout/Navigation"
 
 export const Home = () => {
   const [rawData, setRawData] = useState<NewsCardData[]>([]);
   const [userTickers, setUserTickers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [mainSwiper, setMainSwiper] = useState<SwiperClass | null>(null);
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const deckRef = useRef<HTMLDivElement>(null);
+  const wlock = useRef(false);
 
   const groupedNews = useMemo(() => {
     const safeRawData = rawData || [];
@@ -138,66 +133,101 @@ export const Home = () => {
     };
   }, []);
 
+  // scrollTargetTicker 처리 (다른 페이지에서 특정 티커로 진입)
   useEffect(() => {
-    // 로딩 완료 + 데이터 있음 + 스와이퍼 렌더링 완료 상태일 때만 실행
-    if (!isLoading && groupedNews.length > 0 && mainSwiper) {
+    if (!isLoading && groupedNews.length > 0) {
       const targetTicker = sessionStorage.getItem('scrollTargetTicker');
-      
+
       if (targetTicker) {
         const targetIndex = groupedNews.findIndex(g => g.tickerName === targetTicker);
-        
         if (targetIndex !== -1) {
-          // 약간의 딜레이를 주어야 Swiper가 완전히 그려진 후 안전하게 이동합니다.
-          setTimeout(() => {
-            mainSwiper.slideTo(targetIndex, 0);
-            sessionStorage.removeItem('scrollTargetTicker');
-          }, 100);
-        } else {
-          // 만약 티커를 못 찾았다면 찌꺼기가 남지 않게 지워줍니다.
-          sessionStorage.removeItem('scrollTargetTicker');
+          setActiveIndex(targetIndex);
         }
+        sessionStorage.removeItem('scrollTargetTicker');
       }
     }
-  }, [isLoading, groupedNews, mainSwiper]);
+  }, [isLoading, groupedNews]);
+
+  // activeIndex가 범위를 벗어나면 보정
+  useEffect(() => {
+    if (activeIndex >= groupedNews.length && groupedNews.length > 0) {
+      setActiveIndex(groupedNews.length - 1);
+    }
+  }, [groupedNews, activeIndex]);
+
+  // 티커 전환 애니메이션 (바닐라 JS, translateY + opacity)
+  const changeTicker = (dir: 1 | -1) => {
+    const newIndex = activeIndex + dir;
+    if (newIndex < 0 || newIndex >= groupedNews.length) return;
+
+    const el = deckRef.current;
+    if (!el) {
+      setActiveIndex(newIndex);
+      return;
+    }
+
+    el.style.transition = 'transform .18s ease, opacity .18s ease';
+    el.style.transform = `translateY(${dir > 0 ? -22 : 22}px)`;
+    el.style.opacity = '0';
+
+    setTimeout(() => {
+      setActiveIndex(newIndex);
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${dir > 0 ? 22 : -22}px)`;
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform .2s ease, opacity .2s ease';
+        el.style.transform = 'translateY(0)';
+        el.style.opacity = '1';
+      });
+    }, 180);
+  };
+
+  // 휠 스크롤로 티커 전환
+  const handleWheel = (e: React.WheelEvent) => {
+    if (Math.abs(e.deltaY) < 16) return;
+    if (wlock.current) return;
+    wlock.current = true;
+    changeTicker(e.deltaY > 0 ? 1 : -1);
+    setTimeout(() => { wlock.current = false; }, 560);
+  };
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen font-medium">뉴스를 분류하고 있습니다...</div>;
   }
 
+  const currentGroup = groupedNews[activeIndex];
+
   return (
     <>
       <Header type="main" />
-      <main className="w-full space-y-7 relative">
+      <main className="w-full relative">
         {groupedNews.length === 0 ? (
           <div className="flex flex-col justify-center items-center pt-20 space-y-2">
             <p className="text-gray-500 font-semibold text-lg">표시할 뉴스가 없습니다.</p>
           </div>
         ) : (
-          // 바깥 Swiper - 티커별 세로 스와이프
-          <Swiper
-            direction="vertical"
-            slidesPerView={1}
-            style={{ height: 'calc(100dvh - 186px)' }}
-            modules={[Pagination]}
-            onSwiper={setMainSwiper}
+          <div
+            onWheel={handleWheel}
+            style={{ height: 'calc(100dvh - 62px)', overflow: 'hidden' }}
           >
-            {groupedNews.map((group) => (
-              <SwiperSlide key={group.tickerName}>
-                {group.articles.length === 0 ? (
-                  // 뉴스 없으면 슬라이드 1개만
-                  <div className="h-dvh flex flex-col items-center justify-center px-4">
-                    <h3 className="text-2xl font-bold mb-4">{group.tickerName}</h3>
-                    <p className="text-gray-400 text-sm">현재 {group.tickerName} 관련 뉴스가 없습니다.</p>
-                  </div>
-                ) : (
-                  <TickerSection group={group} sortType={sortType} onSortUpdate={handleSortUpdate} />
-                )}
-              </SwiperSlide>
-            ))}
-          </Swiper>
+            <div ref={deckRef} style={{ height: '100%' }}>
+              {currentGroup.articles.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center px-4">
+                  <h3 className="text-2xl font-bold mb-4">{currentGroup.tickerName}</h3>
+                  <p className="text-gray-400 text-sm">현재 {currentGroup.tickerName} 관련 뉴스가 없습니다.</p>
+                </div>
+              ) : (
+                <TickerSection
+                  group={currentGroup}
+                  sortType={sortType}
+                  onSortUpdate={handleSortUpdate}
+                  onVerticalSwipe={changeTicker}
+                />
+              )}
+            </div>
+          </div>
         )}
       </main>
-      <Navigation showDisclaimer={true} />
     </>
   );
 };

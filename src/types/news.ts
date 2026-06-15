@@ -32,6 +32,12 @@ export interface NewsCardData {
   categories: string[];      // 카테고리
   imageUrl: string;         // 썸네일
   is_read?: boolean;
+  indicator?: {
+    type: string;
+    value: number;
+    label: string;
+    caption: string;
+  } | null;
 }
 
 //티커별로 데이터 묶기

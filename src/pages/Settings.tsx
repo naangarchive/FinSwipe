@@ -215,7 +215,7 @@ export const Settings = () => {
       {/* 투자 유의사항 */}
         <NoticeBox contents={noticeBox} />
     </div>
-    <Navigation showDisclaimer={false}/>
+    <Navigation />
     </>
   );
 };

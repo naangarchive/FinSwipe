@@ -110,7 +110,7 @@ export const My = () => {
         <p className="mt-4 text-center text-xs text-gray-400">v1.0.0 • © 2026 Finswipe</p>
       </div>
       
-      <Navigation showDisclaimer={false}/>
+      <Navigation/>
     </div>
   );
 };

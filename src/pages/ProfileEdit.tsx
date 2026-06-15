@@ -160,7 +160,7 @@ export const ProfileEdit = () => {
           저장하기
         </Button>
       </div>
-      <Navigation showDisclaimer={false}/>
+      <Navigation />
     </>
   );
 };

@@ -141,7 +141,7 @@ export const Like = () => {
         {selectedTickers.length}개 종목 저장하기
       </Button>
     </div>
-    <Navigation showDisclaimer={false}/>
+    <Navigation />
     </>
   );
 };

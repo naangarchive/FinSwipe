@@ -203,12 +203,19 @@ export const Quiz = () => {
               );
             })}
           </ul>
-          <button
-            onClick={() => navigate("/")}
-            className="w-full h-14 bg-blue-600 text-white rounded-xl font-semibold text-base"
-          >
-            홈으로 돌아가기
-          </button>
+          <div className="flex gap-3 w-full mt-6">
+            <button
+              onClick={() => navigate("/")}
+              className="w-full h-14 bg-gray-100 text-gray-700 rounded-xl font-semibold text-base"
+            >
+              뉴스보기
+            </button>  <button
+              onClick={handleNextQuestion}
+              className="w-full h-14 bg-blue-600 text-white rounded-xl font-semibold text-base"
+            >
+              심화퀴즈
+            </button>
+          </div>
         </div>
       </>
     );
@@ -268,7 +275,7 @@ export const Quiz = () => {
           </div>
         )}
       </div>
-      <Navigation showDisclaimer={false}/>
+      <Navigation />
     </>
   );
 };
