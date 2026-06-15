@@ -4,6 +4,7 @@ import logo from '../../assets/logo.svg';
 import logoTxt from '../../assets/logo_tx_black.svg';
 import share from '../../assets/ic_share.svg';
 import back from '../../assets/ic_back.svg';
+import chatbot from '../../assets/ic_chatbot.svg';
 
 interface HeaderProps {
   type: 'main' | 'detail' | 'sub' | 'none';
@@ -43,13 +44,13 @@ export const Header = ({ type, title }: HeaderProps) => {
   if (type === 'none') return null;
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between w-full h-18 px-4 border-b border-gray-100 bg-white">
+    <header className="sticky top-0 z-40 flex items-center justify-between w-full h-15 px-4 bg-white">
       {/* 메인 */}
       {(type === 'main') && (
         <h1 className="flex items-center">
-          <img src={logo} alt="로고" />
-          <img src={logoTxt} alt="FinSwipe" />
-        </h1>
+          <img src={logo} alt="로고" className="h-10"/>
+          <img src={logoTxt} alt="FinSwipe" className="h-6.5"/>
+        </h1>      
       )}
       {(type === 'detail' || type === 'sub') && (
         <div className="flex items-center gap-4">
@@ -73,7 +74,13 @@ export const Header = ({ type, title }: HeaderProps) => {
         >
           <img src={share} alt="공유하기" />
         </button>
-      )}      
+      )}
+      <div className="relative">
+        <button><img src={chatbot} alt="챗봇가기" /></button>
+        <p className="absolute -top-1 -right-1 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
+          <span className="text-[9px] font-black text-white">3</span>
+        </p>
+      </div>
     </header>
   )
 };
