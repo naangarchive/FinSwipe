@@ -54,7 +54,7 @@ function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string 
   const gId = `sg-${Math.random().toString(36).slice(2)}`;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} fill="none" className="w-full h-full overflow-visible">
+    <svg viewBox={`0 0 ${W} ${H}`} fill="none" className="w-full h-full overflow-visible" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={strokeColor} stopOpacity="0.22" />
@@ -62,7 +62,7 @@ function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string 
         </linearGradient>
       </defs>
       <path d={areaPath} fill={`url(#${gId})`} />
-      <path d={linePath} stroke={strokeColor} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      <path d={linePath} stroke={strokeColor} strokeWidth="1.3" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
@@ -98,7 +98,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
       {/* 종목 + 가격 */}
       <div className="flex items-start justify-between px-4 pt-4 shrink-0">
         <div>
-          <p className="text-xl font-black leading-none" style={{ color: t.ink }}>{groupTicker}</p>
+          <p className="text-2xl font-black leading-none" style={{ color: t.ink }}>{groupTicker}</p>
           {article.tickerNames?.[0] && (
             <p className="text-[11px] mt-1" style={{ color: t.soft }}>{article.tickerNames[0].corp}</p>
           )}
@@ -117,7 +117,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
 
       {/* 스파크라인 */}
       {article.sparkline && article.sparkline.length > 1 && (
-        <div className="mx-2 mt-2 h-18 shrink-0">
+        <div className="mx-2 mt-2 h-25 shrink-0">
           <Sparkline data={article.sparkline} strokeColor={t.stroke} />
         </div>
       )}
@@ -128,13 +128,13 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
           className="inline-flex items-center gap-1.5 self-start text-sm font-bold px-3 py-1.5 rounded-full"
           style={{ background: 'rgba(255,255,255,0.7)', color: t.ink }}
         >
-          {emoji} {label === 'positive' ? '강한 긍정' : label === 'negative' ? '강한 부정' : label === 'mixed' ? '혼재' : '중립'}
+          {label === 'positive' ? '강한 긍정' : label === 'negative' ? '강한 부정' : label === 'mixed' ? '혼재' : '중립'}
         </span>
-        <p className="text-[60px] font-black leading-none" style={{ color: t.ink, letterSpacing: '-2px' }}>
+        <p className="text-[72px] font-black leading-none" style={{ color: t.ink, letterSpacing: '-2px' }}>
           {scoreStr}
         </p>
         {article.sentimentReason && (
-          <p className="text-[11px] leading-relaxed max-w-55" style={{ color: t.soft }}>
+          <p className="text-sm leading-relaxed" style={{ color: t.soft }}>
             {article.sentimentReason}
           </p>
         )}
@@ -153,7 +153,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
           )}
           <span className="text-[10px]" style={{ color: t.soft }}>{getTimeAgo(article.publishedAt)}</span>
         </div>
-        <p className="text-[13px] font-semibold leading-snug line-clamp-2" style={{ color: t.ink }}>
+        <p className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: t.ink }}>
           {article.headlineKo}
         </p>
       </div>
@@ -212,7 +212,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
           <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: t.tint }}>
             {article.summary3linesKo && article.summary3linesKo.length > 0 ? (
               article.summary3linesKo.map((line, idx) => (
-                <div key={idx} className="flex gap-2 text-[12px] leading-relaxed" style={{ color: t.ink }}>
+                <div key={idx} className="flex gap-2 text-sm leading-relaxed" style={{ color: t.ink }}>
                   <span className="text-[10px] font-black mt-0.5 shrink-0" style={{ color: t.acc }}>
                     {String(idx + 1).padStart(2, '0')}
                   </span>
@@ -235,7 +235,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
               {label === 'positive' ? '강한 긍정' : label === 'negative' ? '강한 부정' : label === 'mixed' ? '혼재' : '중립'}
             </p>
             {article.sentimentReason && (
-              <p className="text-[10px] mt-1 leading-relaxed" style={{ color: t.soft }}>
+              <p className="text-sm mt-1 leading-relaxed max-w-55" style={{ color: t.soft }}>
                 {article.sentimentReason}
               </p>
             )}
@@ -250,8 +250,8 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
               {indicators.map((ind, idx) => (
                 <div key={idx} className="rounded-2xl p-3" style={{ background: t.tint }}>
                   <p className="text-[10px] font-semibold" style={{ color: t.soft }}>{ind.type}</p>
-                  <p className="text-[18px] font-black mt-1" style={{ color: t.ink }}>{displayVal(ind)}</p>
-                  <p className="text-[10px] font-bold mt-0.5" style={{ color: signalColor(ind) }}>{ind.label}</p>
+                  <p className="text-xl font-black mt-1" style={{ color: t.ink }}>{displayVal(ind)}</p>
+                  <p className="text-xs font-bold mt-0.5" style={{ color: signalColor(ind) }}>{ind.label}</p>
                 </div>
               ))}
             </div>
@@ -301,10 +301,18 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
     setDragX(0);
     if (gone) return;
     const { offset, velocity } = info;
+
     if (Math.abs(offset.y) > Math.abs(offset.x) && Math.abs(offset.y) > 80) {
       onVerticalSwipe(offset.y < 0 ? 1 : -1);
       return;
     }
+
+   // 뒷면일 때는 세로 스와이프 무시
+    if (!isFlipped && Math.abs(offset.y) > Math.abs(offset.x) && Math.abs(offset.y) > 80) {
+      onVerticalSwipe(offset.y < 0 ? 1 : -1);
+      return;
+    }
+
     if (Math.abs(offset.x) > 90 || Math.abs(velocity.x) > 450) {
       dismiss(offset.x > 0 ? 1 : -1);
     }
