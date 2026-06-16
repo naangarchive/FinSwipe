@@ -20,6 +20,7 @@
     "firebase": "^12.12.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
+    "motion": "^12.40.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-ga4": "^3.0.1",
