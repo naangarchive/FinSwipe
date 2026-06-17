@@ -4,7 +4,7 @@ import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { getWebPushToken } from '../lib/firebase';
 //컴포넌트
 import { Header } from "../components/layout/Header";
-import { Navigation } from "../components/layout/Navigation";
+import { DialMenu } from "../components/layout/DialMenu";
 import { NoticeBox } from "../components/common/NoticeBox";
 //이미지
 import bellAllOff from "../assets/ic_bell_all_off.svg";
@@ -215,7 +215,7 @@ export const Settings = () => {
       {/* 투자 유의사항 */}
         <NoticeBox contents={noticeBox} />
     </div>
-    <Navigation />
+    <DialMenu />
     </>
   );
 };

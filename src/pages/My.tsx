@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 //컴포넌트
-import { Navigation } from "../components/layout/Navigation"
+import { DialMenu } from "../components/layout/DialMenu"
 import { MenuItem } from "../components/my/MenuItem"
 import { NoticeBox } from "../components/common/NoticeBox"
 //이미지
@@ -110,7 +110,7 @@ export const My = () => {
         <p className="mt-4 text-center text-xs text-gray-400">v1.0.0 • © 2026 Finswipe</p>
       </div>
       
-      <Navigation/>
+      <DialMenu/>
     </div>
   );
 };
