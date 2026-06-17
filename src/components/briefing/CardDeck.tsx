@@ -80,11 +80,6 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
 
-  const emojiMap: Record<string, string> = {
-    positive: '📈', negative: '📉', neutral: '📊', mixed: '🔀',
-  };
-  const emoji = emojiMap[label] ?? '📊';
-
   const eventTag = article.eventCategory ?? null;
 
   return (
