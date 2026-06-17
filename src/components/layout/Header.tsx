@@ -76,8 +76,8 @@ export const Header = ({ type, title }: HeaderProps) => {
         </button>
       )}
       <div className="relative">
-        <button><img src={chatbot} alt="챗봇가기" /></button>
-        <p className="absolute -top-1 -right-1 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
+        <button><img src={chatbot} alt="챗봇가기" className="w-13" /></button>
+        <p className="absolute top-1 right-0 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
           <span className="text-[9px] font-black text-white">3</span>
         </p>
       </div>
