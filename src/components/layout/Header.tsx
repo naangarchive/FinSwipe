@@ -75,7 +75,7 @@ export const Header = ({ type, title }: HeaderProps) => {
           <img src={share} alt="공유하기" />
         </button>
       )}
-      <div className="relative">
+      <div className="flex items-center relative" onClick={() => navigate(`/chat`)} >
         <button><img src={chatbot} alt="챗봇가기" className="w-13" /></button>
         <p className="absolute top-1 right-0 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
           <span className="text-[9px] font-black text-white">3</span>
