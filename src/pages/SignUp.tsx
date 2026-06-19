@@ -44,10 +44,7 @@ export const SignUp = () => {
 
       // Google 계정으로 가입된 이메일
       if (data.reason === "google") {
-        const moveToGoogle = confirm(
-          "이미 Google 계정으로 가입된 이메일입니다.\nGoogle 로그인으로 이동하시겠습니까?"
-        );
-        if (moveToGoogle) navigate("/login");
+        alert("Google 계정으로 이미 가입된 이메일입니다. Google 로그인을 이용해주세요.");
         setIsEmailChecked(false);
         return;
       }
