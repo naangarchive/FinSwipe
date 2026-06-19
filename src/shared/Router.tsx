@@ -8,6 +8,7 @@ import { Login } from "../pages/Login.tsx";
 import { SignUp } from "../pages/SignUp.tsx";
 import { FindEmail } from "../pages/FindEmail.tsx";
 import { FindPassword } from "../pages/FindPassword.tsx";
+import { ResetPassword } from "../pages/ResetPassword.tsx";
 import { Like } from "../pages/Like.tsx";
 import { My } from "../pages/My.tsx";
 import { ProfileEdit } from "../pages/ProfileEdit.tsx";
@@ -91,6 +92,8 @@ const Router = () => {
         <Route path="/findEmail" element={<FindEmail />} />
         {/* 비밀번호 찾기 */}
         <Route path="/findPassword" element={<FindPassword />} />
+        {/* 비밀번호 초기화 */}
+        <Route path="/reset-password" element={<ResetPassword />} />
         {/* 관심 종목 설정 */}
         <Route path="/like" element={isLoggedIn ? <Like /> : <Navigate to="/login" />} />
         {/* 메인 홈 */}
@@ -106,10 +109,15 @@ const Router = () => {
         />        
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
+        {/* 마이페이지 */}
         <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />
+        {/* 프로필수정 */}
         <Route path="/profileEdit" element={isLoggedIn ? <ProfileEdit /> : <Navigate to="/login" />} />
+        {/* 설정 */}
         <Route path="/settings" element={isLoggedIn ? <Settings /> : <Navigate to="/login" />} />
+        {/* 퀴즈 */}
         <Route path="/quiz" element={isLoggedIn ? <Quiz /> : <Navigate to="/login" />} />
+        {/* 챗봇 */}
         <Route path="/chat" element={isLoggedIn ? <Chat /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
