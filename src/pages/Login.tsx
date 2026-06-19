@@ -20,75 +20,99 @@ export const Login = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLogin = async () => {
-    if (!identifier || !password) return alert("이메일/아이디와 비밀번호를 입력해주세요.");
+    // 빈 값 체크
+    if (!identifier.trim() || !password.trim()) {
+      alert("이메일/아이디와 비밀번호를 입력해주세요.");
+      return;
+    }
 
-    let email = identifier;
+    if (isLoggingIn) return; // 중복 클릭 방지
+    setIsLoggingIn(true);
 
-    // 이메일 형식이 아니면 아이디로 간주 → 이메일 조회
-    if (!validateEmail(identifier)) {
-      const response = await fetch(`${API_BASE_URL}/auth/find-login-id`, {
+    try {
+      let email = identifier;
+
+      // 이메일 형식이 아니면 아이디로 간주 → 이메일 조회
+      if (!validateEmail(identifier)) {
+        const response = await fetch(`${API_BASE_URL}/auth/find-login-id`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ loginId: identifier }),
+        });
+
+        if (!response.ok) {
+          alert("존재하지 않는 아이디입니다.");
+          return;
+        }
+        const data = await response.json();
+        email = data.email;
+      }
+
+      // 이메일로 로그인
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loginId: identifier }),
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) return alert("존재하지 않는 아이디입니다.");
-      const data = await response.json();
-      email = data.email;
-    }
-
-    // 이메일로 로그인
-    const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!loginResponse.ok) return alert("비밀번호가 올바르지 않습니다.");
-
-    const loginData = await loginResponse.json();
-    localStorage.setItem('accessToken', loginData.access_token);
-    localStorage.setItem('userId', loginData.user_id);
-    localStorage.setItem('email', loginData.email);
-    localStorage.setItem('displayName', loginData.display_name);
-
-    // 푸시 알림 토큰
-    try {
-      const check = await FirebaseMessaging.checkPermissions();
-      const finalPermission = check.receive;
-
-      if (finalPermission === 'granted') {
-        let token = '';
-        
-        if (Capacitor.isNativePlatform()) {
-          // 앱: Capacitor 플러그인 사용
-          const result = await FirebaseMessaging.getToken();
-          token = result.token;
+      if (!loginResponse.ok) {
+        if (loginResponse.status === 401 || loginResponse.status === 400) {
+          alert("이메일/아이디 또는 비밀번호가 올바르지 않습니다.");
         } else {
-          // 웹: getWebPushToken 사용 (vapidKey 포함)
-          const webToken = await getWebPushToken();
-          if (webToken) token = webToken;
+          alert("로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
-
-        if (token) {
-          await fetch(`${API_BASE_URL}/news/device-token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${loginData.access_token}`,
-            },
-            body: JSON.stringify({ token, platform: Capacitor.isNativePlatform() ? 'android' : 'web' }),
-          });
-        }
+        return;
       }
-    } catch (err) {
-      console.error("푸시 알림 설정 중 에러 발생:", err);
-    }
 
-    window.dispatchEvent(new Event('login'));
-    navigate('/');
+      const loginData = await loginResponse.json();
+      localStorage.setItem('accessToken', loginData.access_token);
+      localStorage.setItem('userId', loginData.user_id);
+      localStorage.setItem('email', loginData.email);
+      localStorage.setItem('displayName', loginData.display_name);
+
+      // 푸시 알림 토큰 (실패해도 로그인 흐름은 막지 않음)
+      try {
+        const check = await FirebaseMessaging.checkPermissions();
+        const finalPermission = check.receive;
+
+        if (finalPermission === 'granted') {
+          let token = '';
+
+          if (Capacitor.isNativePlatform()) {
+            const result = await FirebaseMessaging.getToken();
+            token = result.token;
+          } else {
+            const webToken = await getWebPushToken();
+            if (webToken) token = webToken;
+          }
+
+          if (token) {
+            await fetch(`${API_BASE_URL}/news/device-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${loginData.access_token}`,
+              },
+              body: JSON.stringify({ token, platform: Capacitor.isNativePlatform() ? 'android' : 'web' }),
+            });
+          }
+        }
+      } catch (pushError) {
+        console.error("푸시 알림 설정 중 에러 발생:", pushError);
+      }
+
+      window.dispatchEvent(new Event('login'));
+      navigate('/');
+
+    } catch (error) {
+      console.error("로그인 처리 중 에러:", error);
+      alert("네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.");
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   // Google 로그인
@@ -154,7 +178,15 @@ export const Login = () => {
             <Link to="/FindEmail" className="text-base font-medium text-gray-600">이메일/아이디 찾기</Link>
             <Link to="/FindPassword" className="text-base font-medium text-gray-600">비밀번호 찾기</Link>
           </div>
-          <Button className="mt-10" variant="primary" size="lg" onClick={handleLogin}>로그인</Button>
+          <Button
+            className="mt-10"
+            variant="primary"
+            size="lg"
+            onClick={handleLogin}
+            disabled={isLoggingIn}
+          >
+            {isLoggingIn ? "로그인 중..." : "로그인"}
+          </Button>
           <div className="my-6 flex items-center gap-4">
             <div className="grow h-px bg-gray-200"></div>
             <div className="text-sm text-gray-500">또는</div>
