@@ -31,11 +31,40 @@ export const SignUp = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 이메일 중복 검사
-  const handleEmailCheck = () => {
+  const handleEmailCheck = async () => {
     if (!formData.email) return alert("이메일을 입력해주세요.");
     if (!validateEmail(formData.email)) return alert("이메일 형식이 올바르지 않습니다.");
-    alert("사용 가능한 이메일입니다.");
-    setIsEmailChecked(true);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/auth/check-email?email=${encodeURIComponent(formData.email)}`
+      );
+      const data = await response.json();
+      console.log("이메일 중복확인 응답:", data); // 실제 필드 확인용
+
+      // Google 계정으로 가입된 이메일
+      if (data.reason === "google") {
+        const moveToGoogle = confirm(
+          "이미 Google 계정으로 가입된 이메일입니다.\nGoogle 로그인으로 이동하시겠습니까?"
+        );
+        if (moveToGoogle) navigate("/login");
+        setIsEmailChecked(false);
+        return;
+      }
+
+      // 이미 일반 가입된 이메일 (필드명 확인 필요 - available, exists 등)
+      if (data.available === false || data.exists === true) {
+        alert("이미 사용 중인 이메일입니다.");
+        setIsEmailChecked(false);
+        return;
+      }
+
+      alert("사용 가능한 이메일입니다.");
+      setIsEmailChecked(true);
+    } catch (error) {
+      console.error("이메일 중복확인 실패:", error);
+      alert("중복확인 중 오류가 발생했습니다.");
+    }
   };
 
   // 아이디 중복 검사
