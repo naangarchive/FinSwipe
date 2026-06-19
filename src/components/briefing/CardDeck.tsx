@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect, useId } from "react";
+import { motion } from "motion/react";
 import type { PanInfo } from "motion/react";
 import type { NewsCardData } from "../../types/news";
+//유틸함수
 import { getTimeAgo } from "../../utils/time";
+import { getSourceName } from "../../utils/format";
 
 interface CardDeckProps {
   articles: NewsCardData[];
@@ -40,6 +42,7 @@ const THEME = {
 
 // 스파크라인
 function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string }) {
+  const gId = useId();
   if (!data || data.length < 2) return null;
   const W = 290, H = 88, pad = 4;
   const min = Math.min(...data), max = Math.max(...data);
@@ -50,8 +53,7 @@ function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string 
     y: pad + (1 - (v - min) / range) * (H - pad * 2),
   }));
   const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-  const areaPath = `${linePath} L${pts[pts.length - 1].x.toFixed(1)} ${H} L${pts[0].x.toFixed(1)} ${H} Z`;
-  const gId = `sg-${Math.random().toString(36).slice(2)}`;
+  const areaPath = `${linePath} L${pts[pts.length - 1].x.toFixed(1)} ${H} L${pts[0].x.toFixed(1)} ${H} Z`;  
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} fill="none" className="w-full h-full overflow-visible" preserveAspectRatio="none">
@@ -139,6 +141,12 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
       <div
         className="mx-3 mb-3 rounded-2xl px-4 py-3 shrink-0"
         style={{ background: 'rgba(255,255,255,0.75)' }}
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        onPointerUpCapture={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          window.open(article.sourceUrl, '_blank');
+        }}
       >
         <div className="flex items-center gap-2 mb-1.5">
           {eventTag && (
@@ -146,9 +154,10 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
               {eventTag}
             </span>
           )}
-          <span className="text-[10px]" style={{ color: t.soft }}>{getTimeAgo(article.publishedAt)}</span>
+          <span className="text-xs" style={{ color: t.soft }}>{getSourceName(article.sourceUrl)}</span>
+          <span className="text-xs" style={{ color: t.soft }}>{getTimeAgo(article.publishedAt)}</span>
         </div>
-        <p className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: t.ink }}>
+        <p className="text-base font-semibold leading-snug line-clamp-2" style={{ color: t.ink }}>
           {article.headlineKo}
         </p>
       </div>
@@ -174,12 +183,14 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
 
   const displayVal = (ind: { value: number | null; displayText?: string | null; type: string }) => {
     if (ind.value !== null && ind.value !== undefined) {
-      if (ind.type === '거래량') return `+${Math.round((ind.value - 1) * 100)}%`;
+      if (ind.type === '거래량') {
+        const pct = Math.round((ind.value - 1) * 100);
+        return `${pct >= 0 ? '+' : ''}${pct}%`;
+      }
       return String(ind.value);
     }
     return ind.displayText ?? '—';
   };
-
   return (
     <div
       className="absolute inset-0 rounded-[28px] overflow-hidden flex flex-col bg-white"
@@ -254,7 +265,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
         )}
 
         {/* 면책조항 */}
-        <p className="text-[10px] text-center leading-relaxed text-gray-400 mt-auto pb-1">
+        <p className="text-[10px] text-center leading-relaxed text-gray-400 pb-1">
           본 서비스는 투자 참고용 정보를 제공하며, 수익성을 보장하지 않습니다.{'\n'}
           투자 결정 및 손실에 대한 책임은 투자자 본인에게 있습니다.
         </p>
@@ -266,8 +277,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
 // 메인
 export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [dragX, setDragX] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);  
   const [gone, setGone] = useState(false);
   const [goneDir, setGoneDir] = useState(0);
 
@@ -279,7 +289,6 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
   useEffect(() => {
     setIsFlipped(false);
     setGone(false);
-    setDragX(0);
   }, [currentIndex]);
 
   const currentArticle = articles[currentIndex];
@@ -292,8 +301,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
     setTimeout(() => setCurrentIndex(prev => prev + 1), 380);
   };
 
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    setDragX(0);
+  const handleDragEnd = (_: unknown, info: PanInfo) => {    
     if (gone) return;
     const { offset, velocity } = info;
 
@@ -327,9 +335,6 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
     );
   }
 
-  const likeOpacity = Math.min(Math.max(dragX / 100, 0), 1);
-  const dislikeOpacity = Math.min(Math.max(-dragX / 100, 0), 1);
-
   return (
     <div className="relative w-full h-full max-h-175">
       {/* 다음 카드 */}
@@ -357,30 +362,10 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
         }
         drag={!gone}
         dragElastic={0.12}
-        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        onDrag={(_, info) => setDragX(info.offset.x)}
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}        
         onDragEnd={handleDragEnd}
         onTap={() => { if (!gone) setIsFlipped(f => !f); }}
       >
-        {/* 스탬프 */}
-        <AnimatePresence>
-          {likeOpacity > 0.1 && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: likeOpacity }} exit={{ opacity: 0 }}
-              className="absolute top-6 right-5 border-2 border-emerald-500 text-emerald-500 font-bold text-base px-3 py-1 rounded-lg rotate-12 z-10 bg-white/80"
-            >
-              💚 관심있음
-            </motion.div>
-          )}
-          {dislikeOpacity > 0.1 && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: dislikeOpacity }} exit={{ opacity: 0 }}
-              className="absolute top-6 left-5 border-2 border-gray-400 text-gray-500 font-bold text-base px-3 py-1 rounded-lg -rotate-12 z-10 bg-white/80"
-            >
-              👋 관심없음
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* 3D flip */}
         <motion.div
