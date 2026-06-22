@@ -193,7 +193,8 @@ export const Chat = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="메시지를 입력하세요."
-              className="flex-1 h-11 px-4 text-sm rounded-xl border border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50"
+              className="flex-1 h-11 px-4 text-sm rounded-xl border border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50"              
+              maxLength={500}
             />
             <button
               onClick={handleSend}
