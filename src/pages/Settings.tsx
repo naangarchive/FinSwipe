@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Capacitor } from '@capacitor/core';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { getWebPushToken } from '../lib/firebase';
@@ -208,6 +209,25 @@ export const Settings = () => {
           <li className="flex items-center justify-between h-18 px-4">
             <p className="text-base text-gray-700">최근 업데이트</p>
             <p className="text-base text-gray-500">2026.05.12</p>
+          </li>
+        </ul>
+      </div>
+
+      {/* 약관 */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-lg font-bold text-gray-900">약관 및 정책</h3>
+        <ul className="border border-gray-200 rounded-2xl">
+          <li className="border-b border-gray-200">
+            <Link to="/terms" className="flex items-center justify-between h-18 px-4">
+              <p className="text-base text-gray-700">이용약관</p>
+              <span className="text-gray-400">›</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/privacy" className="flex items-center justify-between h-18 px-4">
+              <p className="text-base text-gray-700">개인정보처리방침</p>
+              <span className="text-gray-400">›</span>
+            </Link>
           </li>
         </ul>
       </div>

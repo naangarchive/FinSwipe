@@ -15,6 +15,8 @@ import { ProfileEdit } from "../pages/ProfileEdit.tsx";
 import { Settings } from "../pages/Settings.tsx";
 import { Quiz } from "../pages/Quiz.tsx";
 import { Chat } from "../pages/Chat.tsx";
+import { Terms } from "../pages/Terms.tsx";
+import { Privacy } from "../pages/privacy.tsx";
 
 const PageViewTracker = () => {
   usePageView();
@@ -119,6 +121,10 @@ const Router = () => {
         <Route path="/quiz" element={isLoggedIn ? <Quiz /> : <Navigate to="/login" />} />
         {/* 챗봇 */}
         <Route path="/chat" element={isLoggedIn ? <Chat /> : <Navigate to="/login" />} />
+        {/* 이용약관 */}
+        <Route path="/terms" element={isLoggedIn ? <Terms /> : <Navigate to="/login" />} />
+        {/* 개인정보처리방침 */}
+        <Route path="/privacy" element={isLoggedIn ? <Privacy /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
