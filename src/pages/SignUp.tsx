@@ -25,9 +25,10 @@ export const SignUp = () => {
   });
 
   const [isEmailChecked, setIsEmailChecked] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [isTermsChecked, setTermsChecked] = useState(false);
-  const [isDisclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [isDisclaimerChecked, setDisclaimerChecked] = useState(false);  
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 이메일 중복 검사
@@ -44,19 +45,20 @@ export const SignUp = () => {
 
       // Google 계정으로 가입된 이메일
       if (data.reason === "google") {
-        alert("Google 계정으로 이미 가입된 이메일입니다. Google 로그인을 이용해주세요.");
+        setEmailError("Google 계정으로 이미 가입된 이메일입니다. Google 로그인을 이용해주세요.");
         setIsEmailChecked(false);
         return;
       }
 
-      // 이미 일반 가입된 이메일 (필드명 확인 필요 - available, exists 등)
-      if (data.available === false || data.exists === true) {
-        alert("이미 사용 중인 이메일입니다.");
+      // 일반 이메일 중복 확인
+      if (!response.ok || data.available === false) {
+        setEmailError(data.message || "이메일 확인에 실패했습니다.");
         setIsEmailChecked(false);
         return;
       }
 
       alert("사용 가능한 이메일입니다.");
+      setEmailError("");
       setIsEmailChecked(true);
     } catch (error) {
       console.error("이메일 중복확인 실패:", error);
@@ -174,6 +176,9 @@ export const SignUp = () => {
               icon={mailIcon}
               disabled={isEmailChecked}
             />
+            {emailError && (
+              <p className="text-xs text-red-500 px-1">{emailError}</p>
+            )}
             <Button variant="outline" size="md" onClick={handleEmailCheck} disabled={isEmailChecked}>
               {isEmailChecked ? "확인 완료" : "중복확인"}
             </Button>
