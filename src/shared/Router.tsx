@@ -16,7 +16,7 @@ import { Settings } from "../pages/Settings.tsx";
 import { Quiz } from "../pages/Quiz.tsx";
 import { Chat } from "../pages/Chat.tsx";
 import { Terms } from "../pages/Terms.tsx";
-import { Privacy } from "../pages/privacy.tsx";
+import { Privacy } from "../pages/Privacy.tsx";
 
 const PageViewTracker = () => {
   usePageView();
