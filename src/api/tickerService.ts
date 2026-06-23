@@ -17,7 +17,8 @@ export const searchTickerNames = async (term: string): Promise<TickerNameInfo[]>
     const filtered = term
       ? tickerCache!.filter((item) =>
           item.ticker.toLowerCase().includes(term.toLowerCase()) ||
-          item.ko.includes(term)
+          item.ko.includes(term) ||
+          item.corp.toLowerCase().includes(term.toLowerCase())
         )
       : tickerCache!;
 
