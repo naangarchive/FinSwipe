@@ -59,6 +59,7 @@ export const Chat = () => {
       role: "user",
       content,
       createdAt: new Date().toISOString(),
+      is_read: true,
     };
     setMessages((prev) => [...prev, tempUserMsg]);
 
