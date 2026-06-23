@@ -1,21 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import type { ChatMessage } from "../types/chat";
 //컴포넌트
 import { Header } from "../components/layout/Header";
 import { DialMenu } from "../components/layout/DialMenu";
 
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "alert";
-  content: string;
-  ticker?: string | null;
-  articleId?: string | null;
-  createdAt: string;
-}
 
 export const Chat = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const navigate = useNavigate();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");

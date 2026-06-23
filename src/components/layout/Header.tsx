@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getUnreadCount } from "../../types/chat";
 //이미지
 import logo from '../../assets/logo.svg';
 import logoTxt from '../../assets/logo_tx_black.svg';
@@ -13,6 +15,13 @@ interface HeaderProps {
 
 export const Header = ({ type, title }: HeaderProps) => {
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const isLoggedIn = !!localStorage.getItem("accessToken");
+
+  // 알림 갯수
+  useEffect(() => {
+    getUnreadCount().then(setUnreadCount);
+  }, []);
 
   // 시스템 공유 함수
   const handleShare = async () => {
@@ -75,12 +84,17 @@ export const Header = ({ type, title }: HeaderProps) => {
           <img src={share} alt="공유하기" />
         </button>
       )}
-      <div className="flex items-center relative" onClick={() => navigate(`/chat`)} >
-        <button><img src={chatbot} alt="챗봇가기" className="w-13" /></button>
-        <p className="absolute top-1 right-0 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
-          <span className="text-[9px] font-black text-white">3</span>
-        </p>
-      </div>
+      {/* 챗봇 아이콘 - 로그인 시에만 표시 */}
+      {isLoggedIn && (
+        <div className="flex items-center relative" onClick={() => navigate(`/chat`)}>
+          <button><img src={chatbot} alt="챗봇가기" className="w-13" /></button>
+          {unreadCount > 0 && (
+            <p className="absolute top-1 right-0 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">
+              <span className="text-[9px] font-black text-white">{unreadCount}</span>
+            </p>
+          )}
+        </div>
+      )}
     </header>
   )
 };
