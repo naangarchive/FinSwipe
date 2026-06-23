@@ -128,14 +128,30 @@ export const Chat = () => {
             // alert 타입
             if (msg.role === "alert") {
               return (
-                <div key={msg.id} className="flex justify-center">
-                  <button
-                    onClick={() => msg.articleId && navigate(`/detail/${msg.articleId}`)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-700 font-medium"
+                <div key={msg.id} className="flex grow w-full">
+                  <div
+                    className="w-full rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden cursor-pointer active:opacity-80"
                   >
-                    🔔 {msg.ticker && <span className="font-bold">{msg.ticker}</span>}
-                    {msg.content}
-                  </button>
+                    {/* 상단 헤더 */}
+                    <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-amber-100 border-b border-amber-200">
+                      <span className="text-xs font-bold text-amber-700">🔔 감성 알림</span>
+                      {msg.ticker && (
+                        <span className="ml-auto text-xs font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full">
+                          ${msg.ticker}
+                        </span>
+                      )}
+                    </div>
+                    {/* 본문 */}
+                    <div className="px-3 py-2.5">
+                      <p className="text-sm text-amber-900 leading-relaxed">
+                        {msg.content}
+                      </p>
+                    </div>
+                    {/* 시간 */}
+                    <div className="px-3 pb-2">
+                      <time className="text-[10px] text-amber-400">{formatTime(msg.createdAt)}</time>
+                    </div>
+                  </div>
                 </div>
               );
             }
