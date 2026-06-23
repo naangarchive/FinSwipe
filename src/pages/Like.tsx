@@ -22,26 +22,33 @@ export const Like = () => {
   useEffect(() => {
     const loadInitial = async () => {
       const token = localStorage.getItem('accessToken');
+      const allStocks = await searchTickerNames(""); // 한 번만 호출
 
-      // 초기 50개 로드
-      const stocks = await searchTickerNames("");
-      setStocks(stocks);
+      if (!token) {
+        setStocks(allStocks);
+        return;
+      }
 
-      // 기존 저장된 티커 불러오기
-      if (!token) return;
-        try {
-          const response = await fetch(`${API_BASE_URL}/user/tickers`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const tickers = Array.isArray(data.tickers) ? data.tickers : [];
-            setSelectedTickers(tickers);
-            if (tickers.length === 0) setIsFirstTime(true);
-          }
-        } catch (error) {
-          console.error("관심 티커 불러오기 실패:", error);
+      try {
+        const response = await fetch(`${API_BASE_URL}/user/tickers`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const tickers = Array.isArray(data.tickers) ? data.tickers : [];
+          setSelectedTickers(tickers);
+          if (tickers.length === 0) setIsFirstTime(true);
+
+          const sorted = [
+            ...allStocks.filter(s => tickers.includes(s.ticker)),
+            ...allStocks.filter(s => !tickers.includes(s.ticker)).slice(0, 50),
+          ];
+          setStocks(sorted);
         }
+      } catch (error) {
+        console.error("관심 티커 불러오기 실패:", error);
+        setStocks(allStocks);
+      }
     };
     loadInitial();
   }, []);
@@ -54,6 +61,8 @@ export const Like = () => {
     };
     search();
   }, [searchTerm]);
+
+  
 
   // 종목 선택 Toggle
   const toggleStock = (ticker: string) => {

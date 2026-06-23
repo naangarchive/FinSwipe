@@ -6,7 +6,10 @@ export const searchTickerNames = async (term: string): Promise<TickerNameInfo[]>
   try {
     // 캐시 없을 때만 API 호출
     if (!tickerCache) {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/tickers`);
+      const accessToken = localStorage.getItem("accessToken");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/tickers`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const json = await res.json();
       tickerCache = json.data ?? [];
     }
@@ -16,7 +19,7 @@ export const searchTickerNames = async (term: string): Promise<TickerNameInfo[]>
           item.ticker.toLowerCase().includes(term.toLowerCase()) ||
           item.ko.includes(term)
         )
-      : tickerCache!.slice(0, 50);
+      : tickerCache!;
 
     return filtered.sort((a, b) => a.ticker.localeCompare(b.ticker));
   } catch (error) {
