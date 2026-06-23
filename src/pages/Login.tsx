@@ -37,7 +37,7 @@ export const Login = () => {
 
       // 이메일 형식이 아니면 아이디로 간주 → 이메일 조회
       if (!validateEmail(identifier)) {
-        const response = await fetch(`${API_BASE_URL}/auth/find-login-id`, {
+        const response = await fetch(`${API_BASE_URL}/auth/find-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ loginId: identifier }),
