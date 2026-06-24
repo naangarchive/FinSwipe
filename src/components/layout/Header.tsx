@@ -75,18 +75,18 @@ export const Header = ({ type, title }: HeaderProps) => {
           </button>
           <h1 className="text-xl font-bold text-gray-900">{title}</h1>        
         </div>
-      )}
-      {(type === 'detail') && (
-        <button 
-          onClick={handleShare}
-          className="w-10 h-10 cursor-pointer"
-        >
-          <img src={share} alt="공유하기" />
-        </button>
-      )}
+      )}      
       {/* 챗봇 아이콘 - 로그인 시에만 표시 */}
       {isLoggedIn && (
         <div className="flex items-center relative" onClick={() => navigate(`/chat`)}>
+          {(type === 'detail') && (
+            <button 
+              onClick={handleShare}
+              className="w-10 h-10 cursor-pointer"
+            >
+              <img src={share} alt="공유하기" />
+            </button>
+          )}
           <button><img src={chatbot} alt="챗봇가기" className="w-13" /></button>
           {unreadCount > 0 && (
             <p className="absolute top-1 right-0 px-1 min-w-4 h-4 flex justify-center items-center rounded-full bg-red-500">

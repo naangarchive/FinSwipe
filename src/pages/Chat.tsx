@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { ChatMessage } from "../types/chat";
 //컴포넌트
 import { Header } from "../components/layout/Header";
@@ -7,6 +8,7 @@ import { DialMenu } from "../components/layout/DialMenu";
 
 export const Chat = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -96,6 +98,30 @@ export const Chat = () => {
     return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   };
 
+  const handleAlertClick = async (articleId: string) => {
+    const accessToken = localStorage.getItem("accessToken");
+    try {
+      const response = await fetch(`${API_BASE_URL}/news/article/${articleId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (response.status === 404) {
+        alert("삭제되었거나 만료된 뉴스입니다.");
+        return;
+      }
+      if (!response.ok) throw new Error();
+      const article = await response.json();
+      navigate(`/detail/${articleId}`, {
+        state: {
+          articles: [article],  // 배열로 감싸서 전달
+          groupTicker: article.tickers?.[0] ?? '',
+        }
+      });
+    } catch {
+      alert("뉴스를 불러오지 못했습니다.");
+    }
+  };
+  
+
   return (
     <>
       <Header type="sub" title="AI 챗봇" />
@@ -122,6 +148,7 @@ export const Chat = () => {
               return (
                 <div key={msg.id} className="flex grow w-full">
                   <div
+                    onClick={() => msg.articleId && handleAlertClick(msg.articleId)}
                     className="w-full rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden cursor-pointer active:opacity-80"
                   >
                     {/* 상단 헤더 */}

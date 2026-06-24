@@ -125,7 +125,7 @@ export const NewsDetail = () => {
             <p className="text-lg font-bold text-gray-900">3줄 요약</p>
             <div className="flex items-center gap-1 h-8 px-3 rounded-lg bg-gray-100">
               <p className="text-sm font-medium text-gray-700">감성점수</p>
-              <p className="text-sm font-bold text-gray-900">{Math.floor(news.sentimentScore * 100)}</p>
+              <p className="text-sm font-bold text-gray-900">{news.sentimentScore}</p>
             </div>
         </div>        
         <ul className="flex flex-col gap-3">
