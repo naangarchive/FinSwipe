@@ -12,6 +12,7 @@ export const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
   const [activeIndex, setActiveIndex] = useState(0);
+  const [focusArticleId, setFocusArticleId] = useState<string | null>(null);
 
   const deckRef = useRef<HTMLDivElement>(null);
   const wlock = useRef(false);
@@ -132,19 +133,32 @@ export const Home = () => {
     return () => {
       window.removeEventListener('homeRefresh', handleRefresh);
     };
-  }, []);
+  }, []);  
 
   // scrollTargetTicker 처리 (다른 페이지에서 특정 티커로 진입)
   useEffect(() => {
     if (!isLoading && groupedNews.length > 0) {
       const targetTicker = sessionStorage.getItem('scrollTargetTicker');
+      const focusId = sessionStorage.getItem('focusArticleId');
 
       if (targetTicker) {
         const targetIndex = groupedNews.findIndex(g => g.tickerName === targetTicker);
-        if (targetIndex !== -1) {
+        if (targetIndex !== -1) setActiveIndex(targetIndex);
+        sessionStorage.removeItem('scrollTargetTicker');
+      }
+
+      if (focusId) {
+        const targetGroup = groupedNews.find(g => 
+          g.articles.some(a => a.id === focusId)
+        );
+        if (targetGroup) {
+          const targetIndex = groupedNews.findIndex(g => g.tickerName === targetGroup.tickerName);          
           setActiveIndex(targetIndex);
         }
-        sessionStorage.removeItem('scrollTargetTicker');
+        sessionStorage.removeItem('focusArticleId');
+        setTimeout(() => {
+          setFocusArticleId(focusId);
+        }, 300);
       }
     }
   }, [isLoading, groupedNews]);
@@ -219,10 +233,12 @@ export const Home = () => {
                 </div>
               ) : (
                 <TickerSection
+                  key={`${currentGroup.tickerName}-${focusArticleId}`}
                   group={currentGroup}
                   sortType={sortType}
                   onSortUpdate={handleSortUpdate}
                   onVerticalSwipe={changeTicker}
+                  focusArticleId={focusArticleId}
                 />
               )}
             </div>

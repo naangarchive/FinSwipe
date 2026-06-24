@@ -98,27 +98,10 @@ export const Chat = () => {
     return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleAlertClick = async (articleId: string) => {
-    const accessToken = localStorage.getItem("accessToken");
-    try {
-      const response = await fetch(`${API_BASE_URL}/news/article/${articleId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (response.status === 404) {
-        alert("삭제되었거나 만료된 뉴스입니다.");
-        return;
-      }
-      if (!response.ok) throw new Error();
-      const article = await response.json();
-      navigate(`/detail/${articleId}`, {
-        state: {
-          articles: [article],  // 배열로 감싸서 전달
-          groupTicker: article.tickers?.[0] ?? '',
-        }
-      });
-    } catch {
-      alert("뉴스를 불러오지 못했습니다.");
-    }
+  const handleAlertClick = async (articleId: string, ticker?: string | null) => {
+    if (ticker) sessionStorage.setItem('scrollTargetTicker', ticker);
+    if (articleId) sessionStorage.setItem('focusArticleId', articleId);
+    navigate('/');
   };
   
 
@@ -148,15 +131,15 @@ export const Chat = () => {
               return (
                 <div key={msg.id} className="flex grow w-full">
                   <div
-                    onClick={() => msg.articleId && handleAlertClick(msg.articleId)}
+                    onClick={() => msg.articleId && handleAlertClick(msg.articleId, msg.ticker)}
                     className="w-full rounded-2xl border border-amber-200 bg-amber-50 overflow-hidden cursor-pointer active:opacity-80"
                   >
                     {/* 상단 헤더 */}
                     <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-amber-100 border-b border-amber-200">
                       <span className="text-xs font-bold text-amber-700">🔔 감성 알림</span>
                       {msg.ticker && (
-                        <span className="ml-auto text-xs font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full">
-                          ${msg.ticker}
+                        <span className="max-w-[75%] ml-auto text-xs font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full break-all">
+                          {msg.ticker}
                         </span>
                       )}
                     </div>

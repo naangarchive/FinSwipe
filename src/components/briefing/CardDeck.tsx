@@ -10,6 +10,7 @@ interface CardDeckProps {
   articles: NewsCardData[];
   groupTicker: string;
   onVerticalSwipe: (direction: 1 | -1) => void;
+  focusArticleId?: string | null;
 }
 
 const THEME = {
@@ -317,7 +318,7 @@ function DigestCard({ digest }: { digest: DigestItem;}) {
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────────
-export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckProps) => {
+export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleId }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [gone, setGone] = useState(false);
@@ -351,6 +352,16 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe }: CardDeckPro
 
   const currentArticle = articles[currentIndex];
   const nextArticle = articles[currentIndex + 1];
+
+  useEffect(() => {
+    if (focusArticleId && articles.length > 0) {
+      const idx = articles.findIndex(a => a.id === focusArticleId);
+      if (idx !== -1) {
+        setCurrentIndex(idx);
+        sessionStorage.removeItem('pendingFocusArticleId');
+      }
+    }
+  }, [focusArticleId, articles]);
 
   // 카드 소진 시 digest API 호출
   useEffect(() => {
