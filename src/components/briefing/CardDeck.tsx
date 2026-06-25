@@ -41,6 +41,13 @@ const THEME = {
   },
 };
 
+const getSentimentText = (label: string, score: number) => {
+  if (label === 'positive') return score >= 60 ? '강한 긍정' : '약한 긍정';
+  if (label === 'negative') return score <= -60 ? '강한 부정' : '약한 부정';
+  if (label === 'mixed') return '혼재';
+  return '중립';
+};
+
 function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string }) {
   const gId = useId();
   if (!data || data.length < 2) return null;
@@ -103,7 +110,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
       <div className="flex-1 flex flex-col justify-center px-4 gap-2">
         <span className="inline-flex items-center gap-1.5 self-start text-sm font-bold px-3 py-1.5 rounded-full"
           style={{ background: 'rgba(255,255,255,0.7)', color: t.ink }}>
-          {label === 'positive' ? '강한 긍정' : label === 'negative' ? '강한 부정' : label === 'mixed' ? '혼재' : '중립'}
+          {getSentimentText(label, score)}
         </span>
         <p className="text-[72px] font-black leading-none" style={{ color: t.ink, letterSpacing: '-2px' }}>{scoreStr}</p>
         {article.sentimentReason && (
@@ -186,7 +193,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
           <p className="text-[42px] font-black leading-none shrink-0" style={{ color: t.acc }}>{scoreStr}</p>
           <div>
             <p className="text-sm font-bold" style={{ color: t.ink }}>
-              {label === 'positive' ? '강한 긍정' : label === 'negative' ? '강한 부정' : label === 'mixed' ? '혼재' : '중립'}
+              {getSentimentText(label, score)}
             </p>
             {article.sentimentReason && (
               <p className="text-sm mt-1 leading-relaxed max-w-55" style={{ color: t.soft }}>{article.sentimentReason}</p>
