@@ -373,7 +373,12 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
           <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">
             <p className="text-2xl">✅</p>
             <p className="text-sm">오늘의 인사이트를 모두 확인했어요</p>
-            <button onClick={() => setCurrentIndex(0)}
+            <button onClick={() => {
+              setCurrentIndex(0)
+              setDigestData(null);
+              setDigestIndex(0);
+              setDigestError(false);
+            }}
               className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-xl">
               처음부터 다시보기
             </button>
