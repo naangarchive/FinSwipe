@@ -224,7 +224,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
 }
 
 // ── 다이제스트 카드 ──────────────────────────────────────────────────────────
-function DigestCard({ digest }: { digest: DigestItem;}) {
+function DigestCard({ digest, articlesCount }: { digest: DigestItem; articlesCount: number}) {
   const ti = digest.technical_indicators;
   const avg = digest.sentiment_overview.avg_score;
   const isPositive = avg >= 0.1;
@@ -248,7 +248,7 @@ function DigestCard({ digest }: { digest: DigestItem;}) {
             <p className="text-2xl font-black text-gray-900">{digest.ticker}</p>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
               style={{ background: accBg, color: acc }}>
-              {digest.articles_count}건 분석
+              {articlesCount}건 분석
             </span>
           </div>
           <p className="text-xs mt-1 text-gray-400">✨ 하루 종합 인사이트</p>
@@ -326,6 +326,7 @@ function DigestCard({ digest }: { digest: DigestItem;}) {
 export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [dragX, setDragX] = useState(0);
   const [gone, setGone] = useState(false);
   const [goneDir, setGoneDir] = useState(0);
 
@@ -408,6 +409,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
   };
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
+    setDragX(0);
     if (gone) return;
     const { offset, velocity } = info;
     if (!isFlipped && Math.abs(offset.y) > Math.abs(offset.x) && Math.abs(offset.y) > 80) {
@@ -517,7 +519,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               onDragEnd={handleDigestDragEnd}
             >
-              <DigestCard digest={currentDigest} />
+              <DigestCard digest={currentDigest} articlesCount={articles.length} />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -561,6 +563,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
         drag={!gone}
         dragElastic={0.12}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        onDrag={(_, info) => setDragX(info.offset.x)}
         onDragEnd={handleDragEnd}
         onTap={() => {
           if (!gone) {
@@ -570,6 +573,26 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
           }
         }}
       >
+        {/* 스탬프 */}
+        <AnimatePresence>
+          {dragX > 30 && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: Math.min(dragX / 100, 1) }} exit={{ opacity: 0 }}
+              className="absolute top-6 right-5 border-2 border-emerald-500 text-emerald-500 font-bold text-base px-3 py-1 rounded-lg rotate-12 z-10 bg-white/80"
+            >
+              관심있음
+            </motion.div>
+          )}
+          {dragX < -30 && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: Math.min(-dragX / 100, 1) }} exit={{ opacity: 0 }}
+              className="absolute top-6 left-5 border-2 border-gray-400 text-gray-500 font-bold text-base px-3 py-1 rounded-lg -rotate-12 z-10 bg-white/80"
+            >
+              관심없음
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ type: 'spring', stiffness: 220, damping: 30 }}
