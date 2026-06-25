@@ -7,12 +7,14 @@ export const TickerSection = ({
   sortType,  
   onVerticalSwipe,
   focusArticleId,
+  onFlipChange
 }: {
   group: { tickerName: string; articles: NewsCardData[] };
   sortType: 'time' | 'power';
   onSortUpdate: (method: 'time' | 'power') => void;
   onVerticalSwipe: (direction: 1 | -1) => void;
   focusArticleId?: string | null;
+  onFlipChange?: (flipped: boolean) => void;
 }) => {
   const sortedArticles = useMemo(() => {
     if (!group.articles || group.articles.length === 0) return [];
@@ -33,6 +35,7 @@ export const TickerSection = ({
           groupTicker={group.tickerName}
           onVerticalSwipe={onVerticalSwipe}
           focusArticleId={focusArticleId}
+          onFlipChange={onFlipChange}
         />
       </div>
     </div>

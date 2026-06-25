@@ -13,6 +13,7 @@ export const Home = () => {
   const [sortType, setSortType] = useState<'time' | 'power'>('time');
   const [activeIndex, setActiveIndex] = useState(0);
   const [focusArticleId, setFocusArticleId] = useState<string | null>(null);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
   const deckRef = useRef<HTMLDivElement>(null);
   const wlock = useRef(false);
@@ -199,6 +200,7 @@ export const Home = () => {
 
   // 휠 스크롤로 티커 전환
   const handleWheel = (e: React.WheelEvent) => {
+    if (isCardFlipped) return;
     if (Math.abs(e.deltaY) < 16) return;
     if (wlock.current) return;
     wlock.current = true;
@@ -239,6 +241,7 @@ export const Home = () => {
                   onSortUpdate={handleSortUpdate}
                   onVerticalSwipe={changeTicker}
                   focusArticleId={focusArticleId}
+                  onFlipChange={setIsCardFlipped}
                 />
               )}
             </div>

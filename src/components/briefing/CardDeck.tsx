@@ -11,6 +11,7 @@ interface CardDeckProps {
   groupTicker: string;
   onVerticalSwipe: (direction: 1 | -1) => void;
   focusArticleId?: string | null;
+  onFlipChange?: (flipped: boolean) => void;
 }
 
 const THEME = {
@@ -318,7 +319,7 @@ function DigestCard({ digest }: { digest: DigestItem;}) {
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────────
-export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleId }: CardDeckProps) => {
+export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [gone, setGone] = useState(false);
@@ -557,7 +558,13 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
         dragElastic={0.12}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         onDragEnd={handleDragEnd}
-        onTap={() => { if (!gone) setIsFlipped(f => !f); }}
+        onTap={() => {
+          if (!gone) {
+            const next = !isFlipped;
+            setIsFlipped(next);
+            onFlipChange?.(next);
+          }
+        }}
       >
         <motion.div
           animate={{ rotateY: isFlipped ? 180 : 0 }}
