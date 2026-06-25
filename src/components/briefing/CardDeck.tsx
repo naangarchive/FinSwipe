@@ -158,15 +158,12 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
     <div className="absolute inset-0 rounded-[28px] overflow-hidden flex flex-col bg-white"
       style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' as never }}>
       <div className="h-0.75 shrink-0" style={{ background: t.acc }} />
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4 shadow-2xs">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex gap-1">
             <p className="text-lg font-black leading-none" style={{ color: t.ink }}>{groupTicker}</p>
             <p className="text-[10px] mt-1" style={{ color: t.soft }}>{article.tickerNames?.[0]?.corp ?? ''}</p>
           </div>
-          <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: t.tint, color: t.acc }}>
-            ${groupTicker}
-          </span>
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: t.soft }}>핵심 인사이트</p>
