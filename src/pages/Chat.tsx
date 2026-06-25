@@ -16,9 +16,18 @@ export const Chat = () => {
   const [isLoading, setIsLoading] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [expandedAlertDates, setExpandedAlertDates] = useState<Set<string>>(new Set());
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // 높이 자동 조절
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   };
 
   useEffect(() => {
@@ -87,10 +96,13 @@ export const Chat = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '44px';
+      }
     }
   };
 
@@ -272,15 +284,17 @@ export const Chat = () => {
 
         {/* 입력 영역 */}
         <div className="shrink-0 px-4 py-3 bg-white border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInput}
               onKeyDown={handleKeyDown}
               placeholder="메시지를 입력하세요."
-              className="flex-1 h-11 px-4 text-sm rounded-xl border border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50"              
+              rows={1}
               maxLength={500}
+              className="flex-1 px-4 py-3 text-sm rounded-xl border border-gray-200 focus:border-blue-400 focus:outline-none bg-gray-50 resize-none overflow-hidden leading-relaxed"
+              style={{ minHeight: '44px', maxHeight: '120px' }}                       
             />
             <button
               onClick={handleSend}
