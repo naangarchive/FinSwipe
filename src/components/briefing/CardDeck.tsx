@@ -1,8 +1,9 @@
 import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { PanInfo } from "motion/react";
+import { DigestCard } from './DigestCard';
 import type { NewsCardData } from "../../types/news";
-import type { DigestItem, DigestResponse } from "../../types/digest";
+import type { DigestResponse } from "../../types/digest";
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
 
@@ -217,105 +218,6 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
         <p className="text-[10px] text-center leading-relaxed text-gray-400 pb-1">
           본 서비스는 투자 참고용 정보를 제공하며, 수익성을 보장하지 않습니다.{'\n'}
           투자 결정 및 손실에 대한 책임은 투자자 본인에게 있습니다.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ── 다이제스트 카드 ──────────────────────────────────────────────────────────
-function DigestCard({ digest, articlesCount }: { digest: DigestItem; articlesCount: number}) {
-  const ti = digest.technical_indicators;
-  const avg = digest.sentiment_overview.avg_score;
-  const isPositive = avg >= 0.1;
-  const isNegative = avg <= -0.1;
-  const acc = isPositive ? '#0f8f63' : isNegative ? '#c42020' : '#2563eb';
-  const accBg = isPositive ? '#f0fdf4' : isNegative ? '#fff5f5' : '#eff6ff';
-  const scoreStr = `${avg >= 0 ? '+' : ''}${avg.toFixed(1)}`;
-  const chg1d = ti?.change_pct_1d;
-  const rsiSignalColor = ti?.RSI_signal === '과매수' ? '#c42020' : ti?.RSI_signal === '과매도' ? '#0f8f63' : '#64748b';
-  const macdColor = ti?.MACD?.trend === '상승' ? '#0f8f63' : '#c42020';
-
-  return (
-    <div className="absolute top-0 bottom-4 rounded-[28px] overflow-hidden flex flex-col bg-white border border-gray-100">
-      {/* 상단 포인트 바 */}
-      <div className="h-1 shrink-0" style={{ background: acc }} />
-
-      {/* 헤더 */}
-      <div className="flex items-start justify-between px-5 pt-5 pb-3 shrink-0 border-b border-gray-100">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="text-2xl font-black text-gray-900">{digest.ticker}</p>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: accBg, color: acc }}>
-              {articlesCount}건 분석
-            </span>
-          </div>
-          <p className="text-xs mt-1 text-gray-400">✨ 하루 종합 인사이트</p>
-        </div>
-        {ti?.current_price != null && (
-          <div className="text-right">
-            <p className="text-base font-bold text-gray-900">${ti.current_price.toFixed(2)}</p>
-            {chg1d != null && (
-              <p className="text-xs font-semibold mt-0.5" style={{ color: acc }}>
-                {chg1d >= 0 ? '▲' : '▼'} {Math.abs(chg1d).toFixed(1)}%
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
-        {/* 감성 점수 */}
-        <div className="flex items-center gap-4">
-          <p className="text-[56px] font-black leading-none" style={{ color: acc, letterSpacing: '-2px' }}>
-            {scoreStr}
-          </p>
-          <div className="flex flex-col gap-1">
-            <div className="flex gap-2 text-xs text-gray-500">
-              <span>긍정 <b className="text-gray-800">{digest.sentiment_overview.positive}</b></span>
-              <span>부정 <b className="text-gray-800">{digest.sentiment_overview.negative}</b></span>
-              <span>중립 <b className="text-gray-800">{digest.sentiment_overview.neutral}</b></span>
-            </div>
-          </div>
-        </div>
-
-        {/* 요약 */}
-        <p className="text-sm text-gray-700 leading-relaxed">{digest.summary}</p>
-
-        {/* 지표 */}
-        {(ti?.RSI != null || ti?.MACD || ti?.volume_ratio != null) && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">기술적 지표</p>
-            <div className="flex gap-2">
-              {ti?.RSI != null && (
-                <div className="flex-1 rounded-2xl p-3 bg-gray-50">
-                  <p className="text-[9px] font-bold text-gray-400">RSI</p>
-                  <p className="text-base font-black text-gray-900">{ti.RSI.toFixed(1)}</p>
-                  {ti.RSI_signal && <p className="text-[9px] font-bold" style={{ color: rsiSignalColor }}>{ti.RSI_signal}</p>}
-                </div>
-              )}
-              {ti?.MACD && (
-                <div className="flex-1 rounded-2xl p-3 bg-gray-50">
-                  <p className="text-[9px] font-bold text-gray-400">MACD</p>
-                  <p className="text-base font-black text-gray-900">{ti.MACD.macd?.toFixed(2) ?? '—'}</p>
-                  {ti.MACD.trend && <p className="text-[9px] font-bold" style={{ color: macdColor }}>{ti.MACD.trend}</p>}
-                </div>
-              )}
-              {ti?.volume_ratio != null && (
-                <div className="flex-1 rounded-2xl p-3 bg-gray-50">
-                  <p className="text-[9px] font-bold text-gray-400">거래량</p>
-                  <p className="text-base font-black text-gray-900">{ti.volume_ratio.toFixed(2)}x</p>
-                  <p className="text-[9px] font-bold text-gray-400">평균 대비</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 면책조항 */}
-        <p className="text-[10px] text-center text-gray-300 leading-relaxed mt-auto pb-1">
-          본 서비스는 투자 참고용 정보를 제공하며, 수익성을 보장하지 않습니다.
         </p>
       </div>
     </div>
