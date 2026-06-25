@@ -136,9 +136,24 @@ export const Home = () => {
     };
   }, []);  
 
-  // scrollTargetTicker 처리 (다른 페이지에서 특정 티커로 진입)
+  // 다른 페이지에서 특정 뉴스로 진입
   useEffect(() => {
-    if (!isLoading && groupedNews.length > 0) {
+  if (!isLoading && groupedNews.length > 0) {
+    const alertArticleStr = sessionStorage.getItem('alertArticle');
+      if (alertArticleStr) {
+        const article = JSON.parse(alertArticleStr);
+        const ticker = article.tickers?.[0];
+        if (ticker) {
+          const targetIndex = groupedNews.findIndex(g => g.tickerName === ticker);
+          if (targetIndex !== -1) setActiveIndex(targetIndex);
+        }
+        sessionStorage.removeItem('alertArticle');
+        setTimeout(() => {
+          setFocusArticleId(article.id);
+        }, 300);
+        return;
+      }
+
       const targetTicker = sessionStorage.getItem('scrollTargetTicker');
       const focusId = sessionStorage.getItem('focusArticleId');
 
@@ -153,7 +168,7 @@ export const Home = () => {
           g.articles.some(a => a.id === focusId)
         );
         if (targetGroup) {
-          const targetIndex = groupedNews.findIndex(g => g.tickerName === targetGroup.tickerName);          
+          const targetIndex = groupedNews.findIndex(g => g.tickerName === targetGroup.tickerName);
           setActiveIndex(targetIndex);
         }
         sessionStorage.removeItem('focusArticleId');

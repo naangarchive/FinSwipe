@@ -111,10 +111,25 @@ export const Chat = () => {
     return date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleAlertClick = async (articleId: string, ticker?: string | null) => {
-    if (ticker) sessionStorage.setItem('scrollTargetTicker', ticker);
-    if (articleId) sessionStorage.setItem('focusArticleId', articleId);
-    navigate('/');
+  const handleAlertClick = async (articleId: string) => {
+    const accessToken = localStorage.getItem("accessToken");
+    try {
+      const response = await fetch(`${API_BASE_URL}/news/article/${articleId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (response.status === 404) {
+        alert("삭제되었거나 만료된 뉴스입니다.");
+        return;
+      }
+      if (!response.ok) throw new Error();
+      const article = await response.json();
+
+      // sessionStorage에 기사 저장 후 홈으로 이동
+      sessionStorage.setItem('alertArticle', JSON.stringify(article));
+      navigate('/');
+    } catch {
+      alert("뉴스를 불러오지 못했습니다.");
+    }
   };
 
   // messages를 렌더링하기 전에 alert 그룹화
@@ -219,7 +234,7 @@ export const Chat = () => {
                         {item.alerts.map(alert => (
                           <div
                             key={alert.id}
-                            onClick={() => alert.articleId && handleAlertClick(alert.articleId, alert.ticker)}
+                            onClick={() => alert.articleId && handleAlertClick(alert.articleId)}
                             className="px-3 py-2.5 cursor-pointer active:opacity-80"
                           >
                             <div className="flex items-center justify-between mb-1">
