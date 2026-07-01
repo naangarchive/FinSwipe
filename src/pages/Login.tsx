@@ -3,9 +3,13 @@ import { GoogleLogin } from '@react-oauth/google';
 import { getWebPushToken } from '../lib/firebase';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { Capacitor } from '@capacitor/core';
+//이미지
 import Logo from "../assets/logo.svg";
 import LogoTxt from "../assets/logo_tx_white.svg";
 import Google from "../assets/ic_google.svg";
+import LoginIco01 from "../assets/ic_login_01.svg";
+import LoginIco02 from "../assets/ic_login_02.svg";
+import LoginIco03 from "../assets/ic_login_03.svg";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -81,12 +85,12 @@ export const Login = () => {
         {/* 피처 카드들 */}
         <div className="flex gap-3 w-full max-w-xs">
           {[
-            { icon: '📰', title: '뉴스 카드', desc: '스와이프로 빠르게' },
-            { icon: '🤖', title: 'AI 요약', desc: '핵심만 3줄로' },
-            { icon: '📊', title: '보조지표', desc: 'RSI · MACD' },
+            { icon: LoginIco01, title: '뉴스 카드', desc: '스와이프로 빠르게' },
+            { icon: LoginIco02, title: 'AI 요약', desc: '핵심만 3줄로' },
+            { icon: LoginIco03, title: '보조지표', desc: 'RSI · MACD' },
           ].map((f, i) => (
-            <div key={i} className="flex-1 bg-white/10 rounded-2xl p-3 text-center backdrop-blur-sm">
-              <p className="text-2xl mb-1">{f.icon}</p>
+            <div key={i} className="flex-1 items-center bg-white/10 rounded-2xl p-3 text-center backdrop-blur-sm">
+              <img src={f.icon} alt="" className="w-8 h-8 mx-auto mb-1" />
               <p className="text-white text-[11px] font-bold">{f.title}</p>
               <p className="text-white/50 text-[9px] mt-0.5">{f.desc}</p>
             </div>
