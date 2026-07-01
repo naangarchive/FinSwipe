@@ -6,6 +6,13 @@ import logo from '../../assets/logo.svg';
 import logoTxt from '../../assets/logo_tx_black.svg';
 import share from '../../assets/ic_share.svg';
 import back from '../../assets/ic_back.svg';
+import menu from "../../assets/ic_menu.svg";
+import close from "../../assets/ic_close.svg";
+import logout from "../../assets/ic_logout.svg";
+import nav01 from "../../assets/ic_nav_01.svg";
+import nav02 from "../../assets/ic_nav_02.svg";
+import nav03 from "../../assets/ic_nav_03.svg";
+
 
 interface HeaderProps {
   type: 'main' | 'detail' | 'sub' | 'none';
@@ -50,8 +57,8 @@ export const Header = ({ type, title }: HeaderProps) => {
         {/* 좌측 */}
         {type === 'main' && (
           <h1 className="flex items-center">
-            <img src={logo} alt="로고" className="h-10" />
-            <img src={logoTxt} alt="FinSwipe" className="h-6.5" />
+            <img src={logo} alt="로고" className="h-8" />
+            <img src={logoTxt} alt="FinSwipe" className="h-5" />
           </h1>
         )}
         {(type === 'detail' || type === 'sub') && (
@@ -85,9 +92,7 @@ export const Header = ({ type, title }: HeaderProps) => {
               onClick={() => setMenuOpen(true)}
               className="w-10 h-10 flex flex-col items-center justify-center gap-1.5"
             >
-              <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
-              <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
-              <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
+              <img src={menu} alt="메뉴 열기" />
             </button>
           )}
         </div>
@@ -114,16 +119,12 @@ export const Header = ({ type, title }: HeaderProps) => {
               className="fixed top-0 right-0 h-full w-72 bg-white z-50 flex flex-col shadow-xl"
             >
               {/* 드로어 헤더 */}
-              <div className="flex items-center justify-between px-5 pt-14 pb-6 border-b border-gray-100">
-                <div className="flex items-center gap-2">
-                  <img src={logo} alt="" className="h-8" />
-                  <img src={logoTxt} alt="FinSwipe" className="h-5" />
-                </div>
+              <div className="flex items-center justify-end h-15 px-5 border-b border-gray-100">
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 text-xl"
+                  className="w-8 h-8 flex items-center text-gray-400 text-xl"
                 >
-                  ✕
+                  <img src={close} alt="메뉴 닫기" />
                 </button>
               </div>
 
@@ -132,25 +133,25 @@ export const Header = ({ type, title }: HeaderProps) => {
                 <Link
                   to="/like"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-800 hover:bg-gray-50 transition-colors"
                 >
-                  <span className="text-xl">❤️</span>
+                  <img src={nav01} alt="관심종목" />
                   <span className="text-base font-medium">관심종목</span>
                 </Link>
                 <Link
                   to="/terms"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-800 hover:bg-gray-50 transition-colors"
                 >
-                  <span className="text-xl">📄</span>
+                  <img src={nav02} alt="이용약관" />
                   <span className="text-base font-medium">이용약관</span>
                 </Link>
                 <Link
                   to="/privacy"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-800 hover:bg-gray-50 transition-colors"
                 >
-                  <span className="text-xl">🔒</span>
+                  <img src={nav03} alt="개인정보처리방침" />
                   <span className="text-base font-medium">개인정보처리방침</span>
                 </Link>
               </nav>
@@ -159,9 +160,9 @@ export const Header = ({ type, title }: HeaderProps) => {
               <div className="px-4 pb-10 border-t border-gray-100 pt-4">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-400 "
                 >
-                  <span className="text-xl">🚪</span>
+                  <img src={logout} alt="로그아웃" />
                   <span className="text-base font-medium">로그아웃</span>
                 </button>
               </div>
