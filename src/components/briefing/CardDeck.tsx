@@ -300,6 +300,16 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
     if (gone) return;
     setGoneDir(dir);
     setGone(true);
+
+    // 오른쪽 스와이프 = 관심있음 → API 호출
+    if (dir === 1 && currentArticle) {
+      const accessToken = localStorage.getItem('accessToken');
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/like`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(err => console.error('좋아요 저장 실패:', err));
+    }
+
     setTimeout(() => setCurrentIndex(prev => prev + 1), 380);
   };
 
