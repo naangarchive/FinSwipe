@@ -2,7 +2,6 @@ import { useState, useEffect, type ChangeEvent } from "react";
 import { validatePassword, validatePasswordMatch, validateLoginId } from "../utils/validation";
 //컴포넌트
 import { Header } from "../components/layout/Header";
-import { DialMenu } from "../components/layout/DialMenu";
 import { Input } from "../components/common/input";
 import { Button } from "../components/common/button";
 //이미지
@@ -160,7 +159,6 @@ export const ProfileEdit = () => {
           저장하기
         </Button>
       </div>
-      <DialMenu />
     </>
   );
 };

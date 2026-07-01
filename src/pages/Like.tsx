@@ -3,7 +3,6 @@ import { searchTickerNames } from "../api/tickerService";
 import { useNavigate } from "react-router-dom";
 import type { TickerNameInfo } from "../types/tickers";
 import { StockCard } from "../components/setup/StockCard";
-import { DialMenu } from "../components/layout/DialMenu";
 import { Input } from "../components/common/input"
 import { Button } from "../components/common/button"
 //이미지
@@ -150,7 +149,6 @@ export const Like = () => {
         {selectedTickers.length}개 종목 저장하기
       </Button>
     </div>
-    <DialMenu />
     </>
   );
 };

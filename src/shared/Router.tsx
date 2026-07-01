@@ -6,11 +6,6 @@ import { Home } from '../pages/Home.tsx';
 import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
 import { Like } from "../pages/Like.tsx";
-import { My } from "../pages/My.tsx";
-import { ProfileEdit } from "../pages/ProfileEdit.tsx";
-import { Settings } from "../pages/Settings.tsx";
-import { Quiz } from "../pages/Quiz.tsx";
-import { Chat } from "../pages/Chat.tsx";
 import { Terms } from "../pages/Terms.tsx";
 import { Privacy } from "../pages/Privacy.tsx";
 import { NotFound } from "../pages/NotFound.tsx";
@@ -100,16 +95,6 @@ const Router = () => {
         />        
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
-        {/* 마이페이지 */}
-        <Route path="/my" element={isLoggedIn ? <My /> : <Navigate to="/login" />} />
-        {/* 프로필수정 */}
-        <Route path="/profileEdit" element={isLoggedIn ? <ProfileEdit /> : <Navigate to="/login" />} />
-        {/* 설정 */}
-        <Route path="/settings" element={isLoggedIn ? <Settings /> : <Navigate to="/login" />} />
-        {/* 퀴즈 */}
-        <Route path="/quiz" element={isLoggedIn ? <Quiz /> : <Navigate to="/login" />} />
-        {/* 챗봇 */}
-        <Route path="/chat" element={isLoggedIn ? <Chat /> : <Navigate to="/login" />} />
         {/* 이용약관 */}
         <Route path="/terms" element={isLoggedIn ? <Terms /> : <Navigate to="/login" />} />
         {/* 개인정보처리방침 */}

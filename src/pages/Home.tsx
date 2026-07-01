@@ -4,7 +4,6 @@ import { TickerSection } from "../components/briefing/TickerSection";
 
 // 컴포넌트
 import { Header } from "../components/layout/Header"
-import { DialMenu } from "../components/layout/DialMenu";
 
 export const Home = () => {
   const [rawData, setRawData] = useState<NewsCardData[]>([]);
@@ -263,7 +262,6 @@ export const Home = () => {
           </div>
         )}
       </main>
-      <DialMenu />
     </>
   );
 };

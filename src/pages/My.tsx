@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 //컴포넌트
-import { DialMenu } from "../components/layout/DialMenu"
 import { MenuItem } from "../components/my/MenuItem"
 import { NoticeBox } from "../components/common/NoticeBox"
 //이미지
@@ -109,8 +108,6 @@ export const My = () => {
         <NoticeBox contents={noticeBox}/>
         <p className="mt-4 text-center text-xs text-gray-400">v1.0.0 • © 2026 Finswipe</p>
       </div>
-      
-      <DialMenu/>
     </div>
   );
 };

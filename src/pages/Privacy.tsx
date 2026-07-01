@@ -1,5 +1,4 @@
 import { Header } from "../components/layout/Header";
-import { DialMenu } from "../components/layout/DialMenu";
 
 export const Privacy = () => {
   return (
@@ -290,7 +289,6 @@ export const Privacy = () => {
         </section>
  
       </div>
-      <DialMenu />
     </>
   );
 };
