@@ -5,10 +5,6 @@ import { usePageView } from "../hooks/usePageView.ts";
 import { Home } from '../pages/Home.tsx';
 import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
-import { SignUp } from "../pages/SignUp.tsx";
-import { FindEmail } from "../pages/FindEmail.tsx";
-import { FindPassword } from "../pages/FindPassword.tsx";
-import { ResetPassword } from "../pages/ResetPassword.tsx";
 import { Like } from "../pages/Like.tsx";
 import { My } from "../pages/My.tsx";
 import { ProfileEdit } from "../pages/ProfileEdit.tsx";
@@ -89,14 +85,6 @@ const Router = () => {
       <Routes>
         {/* 로그인 */}
         <Route path="/login" element={!isLoggedIn ? <Login /> : <Navigate to="/" />} />
-        {/* 회원가입 */}
-        <Route path="/signUp" element={!isLoggedIn ? <SignUp /> : <Navigate to="/" />} />
-        {/* 이메일 찾기 */}
-        <Route path="/findEmail" element={<FindEmail />} />
-        {/* 비밀번호 찾기 */}
-        <Route path="/findPassword" element={<FindPassword />} />
-        {/* 비밀번호 초기화 */}
-        <Route path="/reset-password" element={<ResetPassword />} />
         {/* 관심 종목 설정 */}
         <Route path="/like" element={isLoggedIn ? <Like /> : <Navigate to="/login" />} />
         {/* 메인 홈 */}
