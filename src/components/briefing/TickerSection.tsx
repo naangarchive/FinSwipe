@@ -31,8 +31,7 @@ export const TickerSection = ({
       {/* 카드 덱 */}
       <div className="flex-1 min-h-0 pt-2">
         <CardDeck
-          articles={sortedArticles}
-          groupTicker={group.tickerName}
+          articles={sortedArticles}          
           onVerticalSwipe={onVerticalSwipe}
           focusArticleId={focusArticleId}
           onFlipChange={onFlipChange}

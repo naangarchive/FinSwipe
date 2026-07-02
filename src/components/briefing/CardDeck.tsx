@@ -9,7 +9,6 @@ import { getSourceName } from "../../utils/format";
 
 interface CardDeckProps {
   articles: NewsCardData[];
-  groupTicker: string;
   onVerticalSwipe: (direction: 1 | -1) => void;
   focusArticleId?: string | null;
   onFlipChange?: (flipped: boolean) => void;
@@ -76,7 +75,7 @@ function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string 
   );
 }
 
-function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicker: string }) {
+function FrontFace({ article }: { article: NewsCardData; }) {
   const label = (article.sentimentLabel ?? 'neutral') as keyof typeof THEME;
   const t = THEME[label] ?? THEME.neutral;
   const chg = article.changePct1d;
@@ -84,6 +83,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
   const eventTag = article.eventCategory ?? null;
+  const ticker = article.tickers?.[0] ?? '';
 
   return (
     <div className="absolute inset-0 rounded-[28px] overflow-hidden flex flex-col"
@@ -91,7 +91,7 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
       <div className="h-0.75 shrink-0" style={{ background: t.acc }} />
       <div className="flex items-start justify-between px-4 pt-4 shrink-0">
         <div>
-          <p className="text-2xl font-black leading-none" style={{ color: t.ink }}>{groupTicker}</p>
+          <p className="text-2xl font-black leading-none" style={{ color: t.ink }}>{ticker}</p>
           {article.tickerNames?.[0] && (
             <p className="text-[11px] mt-1" style={{ color: t.soft }}>{article.tickerNames[0].corp}</p>
           )}
@@ -137,12 +137,13 @@ function FrontFace({ article, groupTicker }: { article: NewsCardData; groupTicke
   );
 }
 
-function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker: string }) {
+function BackFace({ article }: { article: NewsCardData;}) {
   const label = (article.sentimentLabel ?? 'neutral') as keyof typeof THEME;
   const t = THEME[label] ?? THEME.neutral;
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
   const indicators = article.indicators ?? [];
+  const ticker = article.tickers?.[0] ?? '';
 
   const signalColor = (ind: { label: string }) => {
     const l = ind.label;
@@ -169,7 +170,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
       <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4 shadow-2xs">
         <div className="flex justify-between items-start">
           <div className="flex gap-1">
-            <p className="text-lg font-black leading-none" style={{ color: t.ink }}>{groupTicker}</p>
+            <p className="text-lg font-black leading-none" style={{ color: t.ink }}>{ticker}</p>
             <p className="text-[10px] mt-1" style={{ color: t.soft }}>{article.tickerNames?.[0]?.corp ?? ''}</p>
           </div>
         </div>
@@ -225,7 +226,7 @@ function BackFace({ article, groupTicker }: { article: NewsCardData; groupTicker
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────────
-export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
+export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
@@ -374,7 +375,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
 
     // 다이제스트 카드 렌더
     if (digestData) {
-      const digests = digestData.digests.filter(d => d.ticker === groupTicker);
+      const digests = digestData.digests;
       const currentDigest = digests[digestIndex];
       const nextDigest = digests[digestIndex + 1];
 
@@ -465,7 +466,7 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
         />
       )}
       <motion.div
-        className="absolute inset-x-4 top-0 bottom-4 cursor-grab active:cursor-grabbing select-none"
+        className="absolute w-full left-0 inset-x-4 top-0 bottom-4 cursor-grab active:cursor-grabbing select-none"
         style={{ zIndex: 2, perspective: 1300 }}
         animate={
           gone
@@ -516,8 +517,8 @@ export const CardDeck = ({ articles, groupTicker, onVerticalSwipe, focusArticleI
           className="relative w-full h-full"
           style={{ transformStyle: 'preserve-3d' }}
         >
-          <FrontFace article={currentArticle} groupTicker={groupTicker} />
-          <BackFace article={currentArticle} groupTicker={groupTicker} />
+          <FrontFace article={currentArticle} />
+          <BackFace article={currentArticle} />
         </motion.div>
       </motion.div>
     </div>
