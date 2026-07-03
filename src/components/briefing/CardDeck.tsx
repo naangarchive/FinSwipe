@@ -1,16 +1,16 @@
 import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { QuizCard } from "../briefing/QuizCard";
+import { DigestCard } from "..//briefing/DigestCard";
 // 타입
 import type { PanInfo } from "motion/react";
 import type { NewsCardData } from "../../types/news";
 import type { BriefingResponse } from "../../types/digest";
 import type { QuizQuestion } from "../../types/quiz";
-
 // 유틸리티
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
-import { DigestCard } from "./DigestCard";
+
 
 interface CardDeckProps {
   articles: NewsCardData[];
@@ -401,7 +401,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
 
     if (digestData) {
       return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full max-h-175">
           <DigestCard briefing={digestData} articlesCount={articles.length} />
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
             <button
