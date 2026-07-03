@@ -1,8 +1,13 @@
 import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { QuizCard } from "../briefing/QuizCard";
+// 타입
 import type { PanInfo } from "motion/react";
 import type { NewsCardData } from "../../types/news";
 import type { BriefingResponse } from "../../types/digest";
+import type { QuizQuestion } from "../../types/quiz";
+
+// 유틸리티
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
 import { DigestCard } from "./DigestCard";
@@ -234,12 +239,38 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestError, setDigestError] = useState(false);
 
+  // 퀴즈
+  const [quizCard, setQuizCard] = useState<QuizQuestion | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizInsertIndex, setQuizInsertIndex] = useState(0);
+
+  const canShowQuiz = () => {
+    const today = new Date().toDateString();
+    const stored = localStorage.getItem('quizDaily');
+    if (!stored) return true;
+    const { date, count } = JSON.parse(stored);
+    if (date !== today) return true;
+    return count < 2;
+  };
+
+  const incrementQuizCount = () => {
+    const today = new Date().toDateString();
+    const stored = localStorage.getItem('quizDaily');
+    const count = stored && JSON.parse(stored).date === today ? JSON.parse(stored).count : 0;
+    localStorage.setItem('quizDaily', JSON.stringify({ date: today, count: count + 1 }));
+  };
+
   useEffect(() => {
     setCurrentIndex(0);
     setIsFlipped(false);
     setDigestData(null);
     setDigestLoading(false);
     setDigestError(false);
+
+    if (articles.length > 0) {
+      const insertAt = Math.floor(Math.random() * 5) + 3; // 3~7 사이
+      setQuizInsertIndex(insertAt);
+    }
   }, [articles]);
 
   useEffect(() => {
@@ -258,6 +289,28 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       }
     }
   }, [focusArticleId, articles]);
+
+  useEffect(() => {
+    
+    if (currentIndex === quizInsertIndex && canShowQuiz() && !showQuiz) {
+      const fetchQuiz = async () => {
+        try {
+          const accessToken = localStorage.getItem('accessToken');
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/quiz/single`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          if (!res.ok) return;
+          const data: QuizQuestion = await res.json();
+          setQuizCard(data);
+          setShowQuiz(true);
+          incrementQuizCount();
+        } catch {
+          console.error('퀴즈 불러오기 실패');
+        }
+      };
+      fetchQuiz();
+    }
+  }, [currentIndex]);
 
   const currentArticle = articles[currentIndex];
   const nextArticle = articles[currentIndex + 1];
@@ -380,8 +433,24 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const likeOpacity = Math.min(Math.max(dragX / 100, 0), 1);
   const dislikeOpacity = Math.min(Math.max(-dragX / 100, 0), 1);
 
+  // 퀴즈 카드 표시
+  if (showQuiz && quizCard) {
+    return (
+      <div className="relative w-full h-full max-h-175">
+        <QuizCard
+          quiz={quizCard}
+          onComplete={() => {
+            setShowQuiz(false);
+            setQuizCard(null);
+          }}
+        />
+      </div>
+    );
+  }
   return (
+    
     <div className="relative w-full h-full max-h-175">
+      
       {nextArticle && (
         <motion.div
           className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100"
