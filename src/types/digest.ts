@@ -1,5 +1,16 @@
-export interface DigestItem {
-  ticker: string;
+export interface TimelineSession {
+  label: string;
+  sentiment: string;
+  count: number;
+  articles: { headlineKo: string }[];
+}
+
+export interface TimelineResponse {
+  sessions: TimelineSession[];
+}
+
+export interface BriefingResponse {
+  type: string;
   articles_count: number;
   sentiment_overview: {
     positive: number;
@@ -7,8 +18,22 @@ export interface DigestItem {
     neutral: number;
     avg_score: number;
   };
+  briefing: {
+    오늘의_시장: string;
+    핵심_이슈: string;
+    오늘_체크포인트: string;
+  };
   summary: string;
-  technical_indicators: {
+  top_articles: {
+    headline_ko: string;
+    headline: string;
+    sentiment_label: string;
+    sentiment_score: number;
+    tickers: string[];
+    published_at: string;
+  }[];
+  indicators: {
+    ticker: string;
     current_price?: number | null;
     change_pct_1d?: number | null;
     change_pct_1m?: number | null;
@@ -21,23 +46,8 @@ export interface DigestItem {
       histogram?: number | null;
       trend?: string | null;
     } | null;
-  };
-}
-
-export interface DigestResponse {
-  digests: DigestItem[];
+  }[];
   user_level: number;
   user_tendency: string;
   generated_at: string;
-}
-
-export interface TimelineSession {
-  label: string;
-  sentiment: string;
-  count: number;
-  articles: { headlineKo: string }[];
-}
-
-export interface TimelineResponse {
-  sessions: TimelineSession[];
 }

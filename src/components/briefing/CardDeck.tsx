@@ -1,11 +1,11 @@
 import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import type { PanInfo } from "motion/react";
-import { DigestCard } from './DigestCard';
 import type { NewsCardData } from "../../types/news";
-import type { DigestResponse } from "../../types/digest";
+import type { BriefingResponse } from "../../types/digest";
 import { getTimeAgo } from "../../utils/time";
 import { getSourceName } from "../../utils/format";
+import { DigestCard } from "./DigestCard";
 
 interface CardDeckProps {
   articles: NewsCardData[];
@@ -19,33 +19,22 @@ const THEME = {
     card: 'linear-gradient(172deg,#d6f1e3 0%,#b7e3cb 48%,#8fd0ac 100%)',
     ink: '#16463a', soft: '#4a7263', acc: '#0f8f63',
     tint: '#f2fdf8', stroke: '#1f6e58',
-    dot: 'bg-emerald-600', pill: 'bg-emerald-50 text-emerald-800',
   },
   negative: {
     card: 'linear-gradient(172deg,#fce8e8 0%,#f0a0a0 48%,#e06060 100%)',
     ink: '#461616', soft: '#724242', acc: '#c42020',
     tint: '#fff5f5', stroke: '#6e1f1f',
-    dot: 'bg-rose-600', pill: 'bg-rose-50 text-rose-800',
   },
   neutral: {
     card: 'linear-gradient(172deg,#f1f5f9 0%,#cbd5e1 48%,#94a3b8 100%)',
     ink: '#1e293b', soft: '#475569', acc: '#475569',
     tint: '#f8fafc', stroke: '#475569',
-    dot: 'bg-slate-500', pill: 'bg-slate-100 text-slate-700',
   },
   mixed: {
     card: 'linear-gradient(172deg,#fef3c7 0%,#fde68a 48%,#f59e0b 100%)',
     ink: '#451a03', soft: '#78350f', acc: '#d97706',
     tint: '#fffbeb', stroke: '#92400e',
-    dot: 'bg-amber-500', pill: 'bg-amber-50 text-amber-800',
   },
-};
-
-const getSentimentText = (label: string, score: number) => {
-  if (label === 'positive') return score >= 60 ? '강한 긍정' : '약한 긍정';
-  if (label === 'negative') return score <= -60 ? '강한 부정' : '약한 부정';
-  if (label === 'mixed') return '혼재';
-  return '중립';
 };
 
 function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string }) {
@@ -75,15 +64,22 @@ function Sparkline({ data, strokeColor }: { data: number[]; strokeColor: string 
   );
 }
 
-function FrontFace({ article }: { article: NewsCardData; }) {
+const getSentimentText = (label: string, score: number) => {
+  if (label === 'positive') return score >= 60 ? '강한 긍정' : '약한 긍정';
+  if (label === 'negative') return score <= -60 ? '강한 부정' : '약한 부정';
+  if (label === 'mixed') return '혼재';
+  return '중립';
+};
+
+function FrontFace({ article }: { article: NewsCardData }) {
   const label = (article.sentimentLabel ?? 'neutral') as keyof typeof THEME;
   const t = THEME[label] ?? THEME.neutral;
+  const ticker = article.tickers?.[0] ?? '';
   const chg = article.changePct1d;
   const chgStr = chg != null ? `${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(1)}%` : null;
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
   const eventTag = article.eventCategory ?? null;
-  const ticker = article.tickers?.[0] ?? '';
 
   return (
     <div className="absolute inset-0 rounded-[28px] overflow-hidden flex flex-col"
@@ -104,7 +100,7 @@ function FrontFace({ article }: { article: NewsCardData; }) {
         )}
       </div>
       {article.sparkline && article.sparkline.length > 1 && (
-        <div className="mx-2 mt-2 h-25 shrink-0">
+        <div className="mt-2 h-[100px] shrink-0 w-full">
           <Sparkline data={article.sparkline} strokeColor={t.stroke} />
         </div>
       )}
@@ -122,7 +118,7 @@ function FrontFace({ article }: { article: NewsCardData; }) {
         style={{ background: 'rgba(255,255,255,0.75)' }}
         onPointerDownCapture={(e) => e.stopPropagation()}
         onPointerUpCapture={(e) => e.stopPropagation()}
-        onClick={(e) => { e.stopPropagation(); window.open(article.sourceUrl, '_blank'); }}>
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); window.open(article.sourceUrl, '_blank'); }}>
         <div className="flex items-center gap-2 mb-1.5">
           {eventTag && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md"
@@ -137,13 +133,13 @@ function FrontFace({ article }: { article: NewsCardData; }) {
   );
 }
 
-function BackFace({ article }: { article: NewsCardData;}) {
+function BackFace({ article }: { article: NewsCardData }) {
   const label = (article.sentimentLabel ?? 'neutral') as keyof typeof THEME;
   const t = THEME[label] ?? THEME.neutral;
+  const ticker = article.tickers?.[0] ?? '';
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
   const indicators = article.indicators ?? [];
-  const ticker = article.tickers?.[0] ?? '';
 
   const signalColor = (ind: { label: string }) => {
     const l = ind.label;
@@ -167,12 +163,15 @@ function BackFace({ article }: { article: NewsCardData;}) {
     <div className="absolute inset-0 rounded-[28px] overflow-hidden flex flex-col bg-white"
       style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' as never }}>
       <div className="h-0.75 shrink-0" style={{ background: t.acc }} />
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4 shadow-2xs">
+      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4">
         <div className="flex justify-between items-start">
-          <div className="flex gap-1">
+          <div>
             <p className="text-lg font-black leading-none" style={{ color: t.ink }}>{ticker}</p>
             <p className="text-[10px] mt-1" style={{ color: t.soft }}>{article.tickerNames?.[0]?.corp ?? ''}</p>
           </div>
+          <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: t.tint, color: t.acc }}>
+            ${ticker}
+          </span>
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: t.soft }}>핵심 인사이트</p>
@@ -194,11 +193,9 @@ function BackFace({ article }: { article: NewsCardData;}) {
         <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: t.tint }}>
           <p className="text-[42px] font-black leading-none shrink-0" style={{ color: t.acc }}>{scoreStr}</p>
           <div>
-            <p className="text-sm font-bold" style={{ color: t.ink }}>
-              {getSentimentText(label, score)}
-            </p>
+            <p className="text-sm font-bold" style={{ color: t.ink }}>{getSentimentText(label, score)}</p>
             {article.sentimentReason && (
-              <p className="text-sm mt-1 leading-relaxed max-w-55" style={{ color: t.soft }}>{article.sentimentReason}</p>
+              <p className="text-sm mt-1 leading-relaxed" style={{ color: t.soft }}>{article.sentimentReason}</p>
             )}
           </div>
         </div>
@@ -225,7 +222,6 @@ function BackFace({ article }: { article: NewsCardData;}) {
   );
 }
 
-// ── 메인 ────────────────────────────────────────────────────────────────────
 export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -234,18 +230,14 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const [goneDir, setGoneDir] = useState(0);
 
   // 다이제스트 상태
-  const [digestData, setDigestData] = useState<DigestResponse | null>(null);
-  const [digestIndex, setDigestIndex] = useState(0);
+  const [digestData, setDigestData] = useState<BriefingResponse | null>(null);
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestError, setDigestError] = useState(false);
-  const [digestGone, setDigestGone] = useState(false);
-  const [digestGoneDir, setDigestGoneDir] = useState(0);
 
   useEffect(() => {
     setCurrentIndex(0);
     setIsFlipped(false);
     setDigestData(null);
-    setDigestIndex(0);
     setDigestLoading(false);
     setDigestError(false);
   }, [articles]);
@@ -253,15 +245,10 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   useEffect(() => {
     setIsFlipped(false);
     setGone(false);
+    setDragX(0);
   }, [currentIndex]);
 
-  useEffect(() => {
-    setDigestGone(false);
-  }, [digestIndex]);
-
-  const currentArticle = articles[currentIndex];
-  const nextArticle = articles[currentIndex + 1];
-
+  // focusArticleId로 해당 기사 인덱스로 이동
   useEffect(() => {
     if (focusArticleId && articles.length > 0) {
       const idx = articles.findIndex(a => a.id === focusArticleId);
@@ -271,6 +258,9 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       }
     }
   }, [focusArticleId, articles]);
+
+  const currentArticle = articles[currentIndex];
+  const nextArticle = articles[currentIndex + 1];
 
   // 카드 소진 시 digest API 호출
   useEffect(() => {
@@ -282,10 +272,10 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
           const accessToken = localStorage.getItem('accessToken');
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/analysis/digest`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${accessToken}` },
+            headers: { Authorization: `Bearer ${accessToken}` },
           });
           if (!res.ok) throw new Error('digest 실패');
-          const data: DigestResponse = await res.json();
+          const data: BriefingResponse = await res.json();
           setDigestData(data);
         } catch {
           setDigestError(true);
@@ -314,13 +304,6 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     setTimeout(() => setCurrentIndex(prev => prev + 1), 380);
   };
 
-  const dismissDigest = (dir: 1 | -1) => {
-    if (digestGone) return;
-    setDigestGoneDir(dir);
-    setDigestGone(true);
-    setTimeout(() => setDigestIndex(prev => prev + 1), 380);
-  };
-
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     setDragX(0);
     if (gone) return;
@@ -334,17 +317,8 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     }
   };
 
-  const handleDigestDragEnd = (_: unknown, info: PanInfo) => {
-    if (digestGone) return;
-    const { offset, velocity } = info;
-    if (Math.abs(offset.x) > 90 || Math.abs(velocity.x) > 450) {
-      dismissDigest(offset.x > 0 ? 1 : -1);
-    }
-  };
-
-  // ── 카드 소진 후 화면 ───────────────────────────────────────────────────
+  // 카드 소진 후 화면
   if (!currentArticle) {
-    // 로딩
     if (digestLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -354,12 +328,11 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
                 style={{ animationDelay: `${i * 150}ms` }} />
             ))}
           </div>
-          <p className="text-sm text-gray-400">하루 인사이트를 분석하고 있어요...</p>
+          <p className="text-sm text-gray-400">오늘의 시장을 분석하고 있어요...</p>
         </div>
       );
     }
 
-    // 에러
     if (digestError) {
       return (
         <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400 px-8 text-center">
@@ -373,78 +346,26 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       );
     }
 
-    // 다이제스트 카드 렌더
     if (digestData) {
-      const digests = digestData.digests;
-      const currentDigest = digests[digestIndex];
-      const nextDigest = digests[digestIndex + 1];
-
-      if (!currentDigest) {
-        return (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">
-            <p className="text-2xl">✅</p>
-            <p className="text-sm">오늘의 인사이트를 모두 확인했어요</p>
-            <button onClick={() => {
-              setCurrentIndex(0)
-              setDigestData(null);
-              setDigestIndex(0);
-              setDigestError(false);
-            }}
-              className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-xl">
+      return (
+        <div className="relative w-full h-full">
+          <DigestCard briefing={digestData} articlesCount={articles.length} />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
+            <button
+              onClick={() => {
+                setCurrentIndex(0);
+                setDigestData(null);
+                setDigestError(false);
+              }}
+              className="px-4 py-2 text-xs text-gray-400 border border-gray-200 rounded-full bg-white/80"
+            >
               처음부터 다시보기
             </button>
           </div>
-        );
-      }
-
-      if (digests.length === 0) {
-        return (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">
-            <p className="text-sm">표시할 다이제스트가 없습니다</p>
-          </div>
-        );
-      }
-
-      return (
-        <div className="relative w-full h-full max-h-175">
-          {/* 다음 다이제스트 카드 */}
-          {nextDigest && (
-            <motion.div
-              className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100"
-              animate={{ scale: 0.97, y: 10 }}
-              style={{ zIndex: 1 }}
-            />
-          )}
-
-          {/* 현재 다이제스트 카드 */}
-          <AnimatePresence>
-            <motion.div
-              key={digestIndex}
-              className="absolute inset-x-4 top-0 bottom-4 cursor-grab active:cursor-grabbing select-none"
-              style={{ zIndex: 2 }}
-              animate={
-                digestGone
-                  ? { x: digestGoneDir * 900, rotate: digestGoneDir * 20, opacity: 0 }
-                  : { x: 0, rotate: 0, opacity: 1 }
-              }
-              transition={
-                digestGone
-                  ? { duration: 0.36, ease: [0.4, 0, 1, 1] }
-                  : { type: 'spring', stiffness: 300, damping: 30 }
-              }
-              drag={!digestGone}
-              dragElastic={0.12}
-              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              onDragEnd={handleDigestDragEnd}
-            >
-              <DigestCard digest={currentDigest} articlesCount={articles.length} />
-            </motion.div>
-          </AnimatePresence>
         </div>
       );
     }
 
-    // 기본 종료 화면
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">
         <p>모든 뉴스를 확인했습니다</p>
@@ -455,6 +376,9 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       </div>
     );
   }
+
+  const likeOpacity = Math.min(Math.max(dragX / 100, 0), 1);
+  const dislikeOpacity = Math.min(Math.max(-dragX / 100, 0), 1);
 
   return (
     <div className="relative w-full h-full max-h-175">
@@ -491,19 +415,18 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
           }
         }}
       >
-        {/* 스탬프 */}
         <AnimatePresence>
-          {dragX > 30 && (
+          {likeOpacity > 0.1 && (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: Math.min(dragX / 100, 1) }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: likeOpacity }} exit={{ opacity: 0 }}
               className="absolute top-6 right-5 border-2 border-emerald-500 text-emerald-500 font-bold text-base px-3 py-1 rounded-lg rotate-12 z-10 bg-white/80"
             >
               관심있음
             </motion.div>
           )}
-          {dragX < -30 && (
+          {dislikeOpacity > 0.1 && (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: Math.min(-dragX / 100, 1) }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: dislikeOpacity }} exit={{ opacity: 0 }}
               className="absolute top-6 left-5 border-2 border-gray-400 text-gray-500 font-bold text-base px-3 py-1 rounded-lg -rotate-12 z-10 bg-white/80"
             >
               관심없음
