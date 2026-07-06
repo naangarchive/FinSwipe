@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { QuizCard } from "../briefing/QuizCard";
 import { DigestCard } from "..//briefing/DigestCard";
@@ -244,6 +244,46 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizInsertIndex, setQuizInsertIndex] = useState(0);
 
+  const eventQueue = useRef<{ type: string; article_id: string; dwell_ms?: number }[]>([]);
+  const cardStartTime = useRef<number>(0);
+  const flushTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const flushEvents = async () => {
+    if (eventQueue.current.length === 0) return;
+    const events = [...eventQueue.current];
+    eventQueue.current = [];
+    console.log('이벤트 전송:', events); // 추가
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ events }),
+      });
+      
+    } catch (err) {
+      console.error('이벤트 전송 실패:', err);
+    }
+  };
+
+  useEffect(() => {
+    flushTimer.current = setInterval(flushEvents, 30000);
+    return () => {
+      if (flushTimer.current) clearInterval(flushTimer.current);
+      flushEvents(); 
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentArticle) return;
+    cardStartTime.current = Date.now();
+    eventQueue.current.push({ type: 'impression', article_id: currentArticle.id });
+    if (eventQueue.current.length >= 30) flushEvents();
+  }, [currentIndex]);
+
   const canShowQuiz = () => {
     const today = new Date().toDateString();
     const stored = localStorage.getItem('quizDaily');
@@ -342,8 +382,13 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
 
   const dismiss = (dir: 1 | -1) => {
     if (gone) return;
-    setGoneDir(dir);
-    setGone(true);
+
+    // dwell 이벤트
+    if (currentArticle) {
+      const dwell_ms = Date.now() - cardStartTime.current;
+      eventQueue.current.push({ type: 'dwell', article_id: currentArticle.id, dwell_ms });
+      if (eventQueue.current.length >= 30) flushEvents();
+    }
 
     // 오른쪽 스와이프 = 관심있음 → API 호출
     if (dir === 1 && currentArticle) {
@@ -353,7 +398,9 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
         headers: { Authorization: `Bearer ${accessToken}` },
       }).catch(err => console.error('좋아요 저장 실패:', err));
     }
-
+    
+    setGoneDir(dir);
+    setGone(true);
     setTimeout(() => setCurrentIndex(prev => prev + 1), 380);
   };
 
@@ -481,6 +528,11 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
             const next = !isFlipped;
             setIsFlipped(next);
             onFlipChange?.(next);
+            // 앞면→뒷면 플립 시 open 이벤트
+            if (next && currentArticle) {
+              eventQueue.current.push({ type: 'open', article_id: currentArticle.id });
+              if (eventQueue.current.length >= 30) flushEvents();
+            }
           }
         }}
       >
