@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { NewsCardData } from "../types/news";
 import { CardDeck } from "../components/briefing/CardDeck";
 import { Header } from "../components/layout/Header";
+import { track } from '../lib/analytics/ga';
 
 export const Home = () => {
   const [articles, setArticles] = useState<NewsCardData[]>([]);
@@ -22,7 +23,9 @@ export const Home = () => {
       );
       if (!res.ok) throw new Error('뉴스 불러오기 실패');
       const data = await res.json();
-      setArticles(data.data ?? []);
+      const loaded = data.data ?? []; 
+      setArticles(loaded);
+      track("feed_view", { card_count: loaded.length });
     } catch (err) {
       console.error('뉴스 불러오기 실패:', err);
     } finally {

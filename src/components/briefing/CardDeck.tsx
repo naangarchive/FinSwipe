@@ -1,7 +1,8 @@
 import { useState, useEffect, useId, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { QuizCard } from "../briefing/QuizCard";
-import { DigestCard } from "..//briefing/DigestCard";
+import { DigestCard } from "../briefing/DigestCard";
+import { track } from "../../lib/analytics/ga";
 // 타입
 import type { PanInfo } from "motion/react";
 import type { NewsCardData } from "../../types/news";
@@ -252,7 +253,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     if (eventQueue.current.length === 0) return;
     const events = [...eventQueue.current];
     eventQueue.current = [];
-    console.log('이벤트 전송:', events); // 추가
+    console.log('이벤트 전송:', events);
     try {
       const accessToken = localStorage.getItem('accessToken');
       await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/batch`, {
@@ -370,6 +371,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
           if (!res.ok) throw new Error('digest 실패');
           const data: BriefingResponse = await res.json();
           setDigestData(data);
+          track("feed_complete", { cards_swiped: articles.length });
         } catch {
           setDigestError(true);
         } finally {
@@ -459,6 +461,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
             <button
               onClick={() => {
+                track("feed_reset", {});
                 setCurrentIndex(0);
                 setDigestData(null);
                 setDigestError(false);
@@ -475,7 +478,10 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">
         <p>모든 뉴스를 확인했습니다</p>
-        <button onClick={() => setCurrentIndex(0)}
+        <button onClick={() => {
+          track("feed_reset", {});
+          setCurrentIndex(0)
+        }}
           className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-xl">
           처음부터 다시보기
         </button>
@@ -539,6 +545,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
               eventQueue.current.push({ type: 'open', article_id: currentArticle.id });
               if (eventQueue.current.length >= 30) flushEvents();
             }
+            track("card_open", { ticker: currentArticle.tickers?.[0] ?? "" });
           }
         }}
       >
