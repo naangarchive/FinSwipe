@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-// import { initGA } from "./lib/analytics/config";
+import { initGA } from "./lib/analytics/ga";
 import Router from './shared/Router';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { Capacitor } from '@capacitor/core';
@@ -9,7 +9,7 @@ import './lib/firebase';
 function App() {
 
   useEffect(() => {
-    //initGA();
+    initGA();
     
     const initPush = async () => {
       if (Capacitor.isNativePlatform()) {

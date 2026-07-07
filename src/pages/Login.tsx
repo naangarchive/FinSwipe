@@ -3,6 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { getWebPushToken } from '../lib/firebase';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { Capacitor } from '@capacitor/core';
+import { track, setGAUserId  } from '../lib/analytics/ga';
 //이미지
 import Logo from "../assets/logo.svg";
 import LogoTxt from "../assets/logo_tx_white.svg";
@@ -30,6 +31,9 @@ export const Login = () => {
       localStorage.setItem('userId', data.user_id);
       localStorage.setItem('email', data.email);
       localStorage.setItem('displayName', data.display_name);
+
+      track("login", { method: "google" });
+      setGAUserId(data.user_id);
 
       // 푸시 알림 토큰
       try {

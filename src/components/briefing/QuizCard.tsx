@@ -48,14 +48,13 @@ export function QuizCard({ quiz, onComplete }: QuizCardProps) {
   };
 
   return (
-    <div className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] overflow-hidden flex flex-col bg-white border border-gray-100 shadow-sm">
+    <div className="absolute left-0 w-full inset-x-4 top-0 bottom-4 rounded-[28px] overflow-hidden flex flex-col bg-white border border-gray-100 shadow-sm">
       {/* 상단 포인트 바 */}
       <div className="h-1 shrink-0 bg-blue-500" />
 
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🧠</span>
           <p className="text-sm font-bold text-gray-900">투자 퀴즈</p>
         </div>
         <div className="flex items-center gap-2">
