@@ -1,5 +1,4 @@
 import { Header } from "../components/layout/Header";
-import { DialMenu } from "../components/layout/DialMenu";
 
 export const Terms = () => {
   return (
@@ -218,7 +217,6 @@ export const Terms = () => {
         </section>
  
       </div>
-      <DialMenu />
     </>
   );
 };
