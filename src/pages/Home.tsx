@@ -42,24 +42,24 @@ export const Home = () => {
     return () => window.removeEventListener('homeRefresh', onRefresh);
   }, []);
 
-  // 챗봇 알림 → 기사 포커스
-  useEffect(() => {
-    if (!isLoading && articles.length > 0) {
-      const alertArticleStr = sessionStorage.getItem('alertArticle');
-      if (alertArticleStr) {
-        const article = JSON.parse(alertArticleStr);
-        sessionStorage.removeItem('alertArticle');
-        setTimeout(() => setFocusArticleId(article.id), 300);
-        return;
-      }
+  // 챗봇 알림 → 기사 포커스 (현재 라우트 미연결로 비활성)
+  // useEffect(() => {
+  //   if (!isLoading && articles.length > 0) {
+  //     const alertArticleStr = sessionStorage.getItem('alertArticle');
+  //     if (alertArticleStr) {
+  //       const article = JSON.parse(alertArticleStr);
+  //       sessionStorage.removeItem('alertArticle');
+  //       setTimeout(() => setFocusArticleId(article.id), 300);
+  //       return;
+  //     }
 
-      const focusId = sessionStorage.getItem('focusArticleId');
-      if (focusId) {
-        sessionStorage.removeItem('focusArticleId');
-        setTimeout(() => setFocusArticleId(focusId), 300);
-      }
-    }
-  }, [isLoading, articles]);
+  //     const focusId = sessionStorage.getItem('focusArticleId');
+  //     if (focusId) {
+  //       sessionStorage.removeItem('focusArticleId');
+  //       setTimeout(() => setFocusArticleId(focusId), 300);
+  //     }
+  //   }
+  // }, [isLoading, articles]);
 
   return (
     <>
