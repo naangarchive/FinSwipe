@@ -544,8 +544,8 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
             if (next && currentArticle) {
               eventQueue.current.push({ type: 'open', article_id: currentArticle.id });
               if (eventQueue.current.length >= 30) flushEvents();
-            }
-            track("card_open", { ticker: currentArticle.tickers?.[0] ?? "" });
+              track("card_open", { ticker: currentArticle.tickers?.[0] ?? "" });
+            }            
           }
         }}
       >
