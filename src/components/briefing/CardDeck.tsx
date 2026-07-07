@@ -383,20 +383,26 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const dismiss = (dir: 1 | -1) => {
     if (gone) return;
 
-    // dwell 이벤트
     if (currentArticle) {
+      const accessToken = localStorage.getItem('accessToken');
+
+      // dwell 이벤트 (배치)
       const dwell_ms = Date.now() - cardStartTime.current;
       eventQueue.current.push({ type: 'dwell', article_id: currentArticle.id, dwell_ms });
       if (eventQueue.current.length >= 30) flushEvents();
-    }
 
-    // 오른쪽 스와이프 = 관심있음 → API 호출
-    if (dir === 1 && currentArticle) {
-      const accessToken = localStorage.getItem('accessToken');
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/like`, {
+      // read — 이탈 시 항상 호출 (좌/우 무관)
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/read`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}` },
-      }).catch(err => console.error('좋아요 저장 실패:', err));
+      }).catch(err => console.error('읽음 저장 실패:', err));
+
+      // like(오른쪽) / dislike(왼쪽)
+      const endpoint = dir === 1 ? 'like' : 'dislike';
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/${endpoint}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(err => console.error(`${endpoint} 저장 실패:`, err));
     }
     
     setGoneDir(dir);
