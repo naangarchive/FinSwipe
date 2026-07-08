@@ -93,7 +93,7 @@ export const Header = ({ type, title, ticker }: HeaderProps) => {
           {isLoggedIn && (
             <button
               onClick={() => setMenuOpen(true)}
-              className="w-10 h-10 flex flex-col items-center justify-center gap-1.5"
+              className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 opacity-80 hover:opacity-100"
             >
               <img src={menu} alt="메뉴 열기" />
             </button>
@@ -125,7 +125,7 @@ export const Header = ({ type, title, ticker }: HeaderProps) => {
               <div className="flex items-center justify-end h-15 px-5 border-b border-gray-100">
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="w-8 h-8 flex items-center text-gray-400 text-xl"
+                  className="w-8 h-8 flex items-center text-gray-400 text-xl opacity-80 hover:opacity-100"
                 >
                   <img src={close} alt="메뉴 닫기" />
                 </button>
@@ -163,7 +163,7 @@ export const Header = ({ type, title, ticker }: HeaderProps) => {
               <div className="px-4 pb-10 border-t border-gray-100 pt-4">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-400 "
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-gray-400 hover:bg-gray-50"
                 >
                   <img src={logout} alt="로그아웃" />
                   <span className="text-base font-medium">로그아웃</span>

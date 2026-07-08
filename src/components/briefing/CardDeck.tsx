@@ -123,7 +123,7 @@ function FrontFace({ article }: { article: NewsCardData }) {
         )}
       </div>
       {article.sparkline && article.sparkline.length > 1 && (
-        <div className="mt-2 h-[100px] shrink-0 w-full">
+        <div className="mt-2 h-25 shrink-0 w-full">
           <Sparkline data={article.sparkline} strokeColor={t.stroke} />
         </div>
       )}
