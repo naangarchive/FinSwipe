@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { track } from "../../lib/analytics/ga";
 // 이미지
 import logo from '../../assets/logo.svg';
 import logoTxt from '../../assets/logo_tx_black.svg';
@@ -17,14 +18,16 @@ import nav03 from "../../assets/ic_nav_03.svg";
 interface HeaderProps {
   type: 'main' | 'detail' | 'sub' | 'none';
   title?: string;
+  ticker?: string;
 }
 
-export const Header = ({ type, title }: HeaderProps) => {
+export const Header = ({ type, title, ticker }: HeaderProps) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const isLoggedIn = !!localStorage.getItem("accessToken");
 
   const handleShare = async () => {
+    track("card_share", { ticker: ticker ?? "" });
     const shareData = {
       title: title || 'FinSwipe',
       text: '핀스와이프에서 흥미로운 뉴스를 확인해보세요!',

@@ -7,7 +7,7 @@ import { track } from '../lib/analytics/ga';
 export const Home = () => {
   const [articles, setArticles] = useState<NewsCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [focusArticleId, setFocusArticleId] = useState<string | null>(null);
+  // const [focusArticleId, setFocusArticleId] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -89,7 +89,7 @@ export const Home = () => {
             <CardDeck
               articles={articles}
               onVerticalSwipe={() => {}}
-              focusArticleId={focusArticleId}
+              // focusArticleId={focusArticleId}
             />
           </div>
         )}
