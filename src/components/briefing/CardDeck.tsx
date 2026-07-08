@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useRef } from "react";
+import { useState, useEffect, useId, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { QuizCard } from "../briefing/QuizCard";
 import { DigestCard } from "../briefing/DigestCard";
@@ -18,6 +18,23 @@ interface CardDeckProps {
   onVerticalSwipe: (direction: 1 | -1) => void;
   focusArticleId?: string | null;
   onFlipChange?: (flipped: boolean) => void;
+}
+
+// 티커별 감성점수 절댓값 최고 카드 = hero (순수 함수, 컴포넌트 밖 OK)
+function computeHeroIds(articles: NewsCardData[]): Set<string> {
+  const bestByTicker = new Map<string, { id: string; score: number }>();
+
+  for (const a of articles) {
+    const ticker = a.tickers?.[0];
+    if (!ticker) continue;
+    const score = Math.abs(a.sentimentScore ?? 0);
+    const prev = bestByTicker.get(ticker);
+    if (!prev || score > prev.score) {
+      bestByTicker.set(ticker, { id: a.id, score });
+    }
+  }
+
+  return new Set([...bestByTicker.values()].map(v => v.id));
 }
 
 const THEME = {
@@ -249,6 +266,11 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   const cardStartTime = useRef<number>(0);
   const flushTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // GA4 카드 레벨용
+  const seenTickers = useRef<Set<string>>(new Set());
+  const heroIds = useMemo(() => computeHeroIds(articles), [articles]);
+  const isAutoAdded = (a: NewsCardData) => a.source === "explore";
+
   const flushEvents = async () => {
     if (eventQueue.current.length === 0) return;
     const events = [...eventQueue.current];
@@ -264,7 +286,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
         },
         body: JSON.stringify({ events }),
       });
-      
+
     } catch (err) {
       console.error('이벤트 전송 실패:', err);
     }
@@ -274,7 +296,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     flushTimer.current = setInterval(flushEvents, 30000);
     return () => {
       if (flushTimer.current) clearInterval(flushTimer.current);
-      flushEvents(); 
+      flushEvents();
     };
   }, []);
 
@@ -283,6 +305,16 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     cardStartTime.current = Date.now();
     eventQueue.current.push({ type: 'impression', article_id: currentArticle.id });
     if (eventQueue.current.length >= 30) flushEvents();
+
+    // GA4
+    track("card_impression", {
+      ticker: currentArticle.tickers?.[0] ?? "",
+      sector: currentArticle.sector ?? "",
+      event_type: currentArticle.eventCategory ?? "",
+      card_rank: currentIndex,
+      is_hero: heroIds.has(currentArticle.id),
+      is_auto_added: isAutoAdded(currentArticle),
+    });
   }, [currentIndex]);
 
   const canShowQuiz = () => {
@@ -307,6 +339,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     setDigestData(null);
     setDigestLoading(false);
     setDigestError(false);
+    seenTickers.current.clear();   // 새 피드 → 세션 티커 초기화
 
     if (articles.length > 0) {
       const insertAt = Math.floor(Math.random() * 5) + 3; // 3~7 사이
@@ -332,7 +365,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
   }, [focusArticleId, articles]);
 
   useEffect(() => {
-    
+
     if (currentIndex === quizInsertIndex && canShowQuiz() && !showQuiz) {
       const fetchQuiz = async () => {
         try {
@@ -393,20 +426,31 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       eventQueue.current.push({ type: 'dwell', article_id: currentArticle.id, dwell_ms });
       if (eventQueue.current.length >= 30) flushEvents();
 
-      // read — 이탈 시 항상 호출 (좌/우 무관)
+      // GA4 card_swipe
+      const ticker = currentArticle.tickers?.[0] ?? "";
+      track("card_swipe", {
+        direction: dir === 1 ? "right" : "left",
+        dwell_ms,
+        is_hero: heroIds.has(currentArticle.id),
+        is_auto_added: isAutoAdded(currentArticle),
+        sentiment: currentArticle.sentimentLabel ?? "",
+        same_ticker_seen: seenTickers.current.has(ticker),
+      });
+      seenTickers.current.add(ticker);
+
+      // read / like / dislike
       fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/read`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}` },
       }).catch(err => console.error('읽음 저장 실패:', err));
 
-      // like(오른쪽) / dislike(왼쪽)
       const endpoint = dir === 1 ? 'like' : 'dislike';
       fetch(`${import.meta.env.VITE_API_BASE_URL}/news/${currentArticle.id}/${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}` },
       }).catch(err => console.error(`${endpoint} 저장 실패:`, err));
     }
-    
+
     setGoneDir(dir);
     setGone(true);
     setTimeout(() => setCurrentIndex(prev => prev + 1), 380);
@@ -507,9 +551,9 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     );
   }
   return (
-    
+
     <div className="relative w-full h-full max-h-175">
-      
+
       {nextArticle && (
         <motion.div
           className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100"
@@ -545,7 +589,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
               eventQueue.current.push({ type: 'open', article_id: currentArticle.id });
               if (eventQueue.current.length >= 30) flushEvents();
               track("card_open", { ticker: currentArticle.tickers?.[0] ?? "" });
-            }            
+            }
           }
         }}
       >

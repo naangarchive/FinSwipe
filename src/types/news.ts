@@ -33,6 +33,8 @@ export interface NewsCardData {
   categories: string[];     // 카테고리
   imageUrl: string;         // 썸네일
   is_read: boolean;
+  sector?: string;
+  source?: 'personal' | 'explore' | 'cold';
 
   indicators?: {
     type: string;
