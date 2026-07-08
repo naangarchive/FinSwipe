@@ -100,6 +100,7 @@ function FrontFace({ article }: { article: NewsCardData }) {
   const ticker = article.tickers?.[0] ?? '';
   const chg = article.changePct1d;
   const chgStr = chg != null ? `${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(1)}%` : null;
+  const chgColor = chg != null && chg >= 0 ? '#c42020' : '#1e50c4';
   const score = article.sentimentScore ?? 0;
   const scoreStr = `${score > 0 ? '+' : ''}${score}`;
   const eventTag = article.eventCategory ?? null;
@@ -118,7 +119,7 @@ function FrontFace({ article }: { article: NewsCardData }) {
         {article.currentPrice != null && (
           <div className="text-right">
             <p className="text-base font-bold leading-none" style={{ color: t.ink }}>${article.currentPrice.toFixed(2)}</p>
-            {chgStr && <p className="text-[12px] font-semibold mt-1" style={{ color: t.acc }}>{chgStr}</p>}
+            {chgStr && <p className="text-[12px] font-semibold mt-1" style={{ color: chgColor }}>{chgStr}</p>}
           </div>
         )}
       </div>
