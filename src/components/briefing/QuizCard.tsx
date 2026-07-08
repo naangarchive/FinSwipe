@@ -100,14 +100,6 @@ export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
         <div className="flex items-center gap-2">
           <p className="text-sm font-bold text-gray-900">투자 퀴즈</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
-            {quiz.area}
-          </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-            Lv.{quiz.level}
-          </span>
-        </div>
       </div>
 
       {/* 문제 */}
@@ -150,8 +142,7 @@ export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
         {/* 결과 */}
         {result && (
           <div className={`rounded-2xl p-4 ${result.is_correct ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{result.is_correct ? '🎉' : '😅'}</span>
+            <div className="flex items-center gap-2 mb-2">              
               <p className={`text-sm font-bold ${result.is_correct ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {result.is_correct ? '정답이에요!' : `오답이에요. 정답은 ${result.correct_answer}예요.`}
               </p>
@@ -164,7 +155,7 @@ export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
         {result && (
           <button
             onClick={onComplete}
-            className="w-full py-3 rounded-2xl bg-blue-600 text-white text-sm font-semibold"
+            className="w-full py-3 rounded-[14px] bg-blue-600 text-white text-sm font-semibold"
           >
             다음 카드로 →
           </button>
