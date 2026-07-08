@@ -3,6 +3,12 @@
 //  - PM 측정 스펙(2장 GA4 이벤트)의 이벤트/파라미터를 TS 타입으로 고정
 //  - 이벤트명·파라미터 오타는 컴파일 단계에서 잡힘 (콘솔 커스텀 측정기준과 이름 일치 강제)
 //  - gtag는 자체 배칭/전송을 하므로 /events/batch 같은 큐 로직 불필요 (call site에서 fire-and-forget)
+//
+//  [스펙에서 제외된 이벤트 — 여기 없는 이유 기록]
+//  · card_save                         : 앱에 저장/북마크 기능 없음 → 삭제
+//  · ticker_search / add / remove      : 관심종목 페이지 삭제로 발화 지점 없음 → 삭제
+//  · card_skip_context / insight_unlock: 서버 계산값(skip_reason_inferred / implied_level)이라
+//                                        FE가 못 쏨. 백엔드 자체 지표(내부 DB)로 이관 → GA4 미사용
 // ─────────────────────────────────────────────────────────────
 
 const GA_ID = import.meta.env.VITE_GA_ID as string | undefined;
@@ -14,7 +20,7 @@ declare global {
   }
 }
 
-// ── 이벤트 ↔ 파라미터 스키마 (PM 문서 2-1 / 2-2 그대로) ──────────
+// ── 이벤트 ↔ 파라미터 스키마 (PM 문서 2-1 / 2-2 기준) ──────────
 // 여기 정의된 파라미터 key는 GA4 콘솔의 '맞춤 측정기준' 이름과 반드시 일치해야 조회됨.
 // (한도: 이벤트당 파라미터 25개 / 속성당 이벤트 500종)
 type GA4EventMap = {
@@ -32,41 +38,43 @@ type GA4EventMap = {
   };
   card_swipe: {
     direction: "left" | "right";
-    dwell_ms: number; // ← 배치 dwell과 동일한 값
+    dwell_ms: number; // 배치 dwell과 동일한 값
     is_hero: boolean;
     is_auto_added: boolean;
     sentiment: string;
     same_ticker_seen: boolean;
   };
   card_open: { ticker: string };
-  card_save: { ticker: string; is_hero: boolean };
   card_share: { ticker: string };
-  ticker_search: { query: string; results_count: number };
-  ticker_add: { ticker: string; source: string };
-  ticker_remove: { ticker: string; source: string };
   feed_complete: { cards_swiped: number };
   feed_reset: Record<string, never>;
 
   // ── 2-2. 콜드스타트·퀴즈·인사이트 이벤트 ──
+  // onboarding_card_swipe: 온보딩 화면 신규 개발 후 붙일 예정 (백엔드 작업 대기). 타입만 선반영.
   onboarding_card_swipe: {
     ticker: string;
     sector: string;
     direction: "left" | "right";
     dwell_ms: number;
   };
-  // ⚠️ skip_reason_inferred 는 서버 추론값(문서 1-2). FE가 스와이프 순간에 못 채움.
-  //    → 이 이벤트는 BE가 서버사이드로 쏘거나, API 응답에 값을 실어줄 때만 FE emit 가능. PM 확인 필요.
-  card_skip_context: { skip_reason_inferred: string; sentiment: string };
-  quiz_card_impression: { topic: string; difficulty: string; position: number };
+  quiz_card_impression: {
+    topic: string;
+    difficulty: string;
+    position: number;
+  };
   quiz_card_answer: {
     topic: string;
     difficulty: string;
     correct: boolean;
     answer_ms: number;
+    dwell_ms: number;
+    is_skipped: boolean; // 스킵 시 true (correct=false)
   };
-  quiz_card_skip: { topic: string; position: number };
-  // ⚠️ level_tier 는 implied_level(서버 계산값) 기반. API가 클라에 내려줘야 채울 수 있음. BE 확인 필요.
-  insight_unlock: { level_tier: string; cards_consumed: number };
+  quiz_card_skip: {
+    topic: string;
+    position: number;
+    dwell_ms: number; // 스킵 전 체류 시간
+  };
   feed_personalized: { source: "cold_start" | "behavior" };
 };
 

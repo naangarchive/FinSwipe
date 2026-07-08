@@ -49,6 +49,7 @@ export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
         difficulty: String(quiz.level),
         correct: data.is_correct,
         answer_ms: Date.now() - shownAt.current,
+        dwell_ms: Date.now() - shownAt.current,
         is_skipped: false,
       });
     } catch {
@@ -68,7 +69,7 @@ export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
       difficulty: String(quiz.level),
       correct: false,
       answer_ms: dwell_ms,
-      is_skipped: true,
+      dwell_ms, is_skipped: true,
     });
     track("quiz_card_skip", {
       topic: quiz.area,
