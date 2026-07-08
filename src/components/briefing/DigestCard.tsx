@@ -156,15 +156,6 @@ export function DigestCard({ briefing, articlesCount }: DigestCardProps) {
           </div>
           <p className="text-xs mt-1 text-gray-400">{briefing.user_tendency} · ✨ 통합 인사이트</p>
         </div>
-        {rep?.current_price != null && (
-          <div className="text-right">
-            <p className="text-xs font-bold text-gray-500">{rep.ticker}</p>
-            <p className="text-base font-bold text-gray-900">${rep.current_price.toFixed(2)}</p>
-            <p className="text-xs font-semibold" style={{ color: chg1d >= 0 ? '#0f8f63' : '#c42020' }}>
-              {chg1d >= 0 ? '▲' : '▼'} {Math.abs(chg1d).toFixed(1)}%
-            </p>
-          </div>
-        )}
       </div>
 
       {/* 탭 */}
