@@ -26,6 +26,10 @@ export const Home = () => {
       const loaded = data.data ?? []; 
       setArticles(loaded);
       track("feed_view", { card_count: loaded.length });
+
+      if (data.feedSource) {
+        track("feed_personalized", { source: data.feedSource });
+      }
     } catch (err) {
       console.error('뉴스 불러오기 실패:', err);
     } finally {
