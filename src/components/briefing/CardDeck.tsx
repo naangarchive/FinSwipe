@@ -542,6 +542,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       <div className="relative w-full h-full max-h-175">
         <QuizCard
           quiz={quizCard}
+          position={quizInsertIndex}
           onComplete={() => {
             setShowQuiz(false);
             setQuizCard(null);
