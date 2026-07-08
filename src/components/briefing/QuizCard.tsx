@@ -1,15 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { track } from "../../lib/analytics/ga";
 import type { QuizQuestion, QuizCheckResponse } from "../../types/quiz";
 
 interface QuizCardProps {
   quiz: QuizQuestion;
   onComplete: () => void;
+  position?: number;   // 피드 내 퀴즈 삽입 위치 (CardDeck에서 전달)
 }
 
-export function QuizCard({ quiz, onComplete }: QuizCardProps) {
+export function QuizCard({ quiz, onComplete, position }: QuizCardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [result, setResult] = useState<QuizCheckResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const shownAt = useRef<number>(Date.now());
+
+  // 퀴즈 노출 (문제 바뀔 때마다 타이머 리셋 + impression)
+  useEffect(() => {
+    shownAt.current = Date.now();
+    track("quiz_card_impression", {
+      topic: quiz.area,
+      difficulty: String(quiz.level),
+      position: position ?? -1,
+    });
+  }, [quiz.question_id]);
 
   const handleSelect = async (key: string) => {
     if (selected || isSubmitting) return;
@@ -29,11 +42,41 @@ export function QuizCard({ quiz, onComplete }: QuizCardProps) {
       if (!res.ok) throw new Error();
       const data: QuizCheckResponse = await res.json();
       setResult(data);
+
+      // 풀었을 때 → answer (is_skipped: false)
+      track("quiz_card_answer", {
+        topic: quiz.area,
+        difficulty: String(quiz.level),
+        correct: data.is_correct,
+        answer_ms: Date.now() - shownAt.current,
+        is_skipped: false,
+      });
     } catch {
       console.error('퀴즈 답안 제출 실패');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // 스킵 → answer(is_skipped: true) + quiz_card_skip 둘 다
+  const handleSkip = () => {
+    if (selected || isSubmitting) return;
+    const dwell_ms = Date.now() - shownAt.current;
+
+    track("quiz_card_answer", {
+      topic: quiz.area,
+      difficulty: String(quiz.level),
+      correct: false,
+      answer_ms: dwell_ms,
+      is_skipped: true,
+    });
+    track("quiz_card_skip", {
+      topic: quiz.area,
+      position: position ?? -1,
+      dwell_ms,
+    });
+
+    onComplete();   // 다음 카드로 (카운트는 노출 시 이미 증가됨)
   };
 
   const getChoiceStyle = (key: string) => {
@@ -92,6 +135,17 @@ export function QuizCard({ quiz, onComplete }: QuizCardProps) {
             </button>
           ))}
         </div>
+
+        {/* 건너뛰기 (결과 나오기 전에만) */}
+        {!result && (
+          <button
+            onClick={handleSkip}
+            disabled={!!selected}
+            className="self-center text-xs text-gray-400 underline underline-offset-2 disabled:opacity-40"
+          >
+            이 퀴즈 건너뛰기
+          </button>
+        )}
 
         {/* 결과 */}
         {result && (
