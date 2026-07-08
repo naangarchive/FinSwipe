@@ -7,6 +7,7 @@ import { track } from '../lib/analytics/ga';
 export const Home = () => {
   const [articles, setArticles] = useState<NewsCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [feedSource, setFeedSource] = useState<"cold_start" | "behavior" | null>(null);
   // const [focusArticleId, setFocusArticleId] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -25,6 +26,7 @@ export const Home = () => {
       const data = await res.json();
       const loaded = data.data ?? []; 
       setArticles(loaded);
+      setFeedSource(data.feedSource ?? null);
       track("feed_view", { card_count: loaded.length });
 
       if (data.feedSource) {
@@ -93,6 +95,7 @@ export const Home = () => {
             <CardDeck
               articles={articles}
               onVerticalSwipe={() => {}}
+              feedSource={feedSource}
               // focusArticleId={focusArticleId}
             />
           </div>

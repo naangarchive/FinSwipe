@@ -18,6 +18,7 @@ interface CardDeckProps {
   onVerticalSwipe: (direction: 1 | -1) => void;
   focusArticleId?: string | null;
   onFlipChange?: (flipped: boolean) => void;
+  feedSource?: "cold_start" | "behavior" | null;
 }
 
 // 티커별 감성점수 절댓값 최고 카드 = hero (순수 함수, 컴포넌트 밖 OK)
@@ -246,7 +247,7 @@ function BackFace({ article }: { article: NewsCardData }) {
   );
 }
 
-export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChange }: CardDeckProps) => {
+export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChange, feedSource }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
@@ -436,6 +437,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
         is_auto_added: isAutoAdded(currentArticle),
         sentiment: currentArticle.sentimentLabel ?? "",
         same_ticker_seen: seenTickers.current.has(ticker),
+        feed_source: feedSource ?? "cold_start",
       });
       seenTickers.current.add(ticker);
 

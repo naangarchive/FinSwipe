@@ -43,6 +43,7 @@ type GA4EventMap = {
     is_auto_added: boolean;
     sentiment: string;
     same_ticker_seen: boolean;
+    feed_source: "cold_start" | "behavior";
   };
   card_open: { ticker: string };
   card_share: { ticker: string };
