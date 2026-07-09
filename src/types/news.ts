@@ -56,3 +56,11 @@ export interface TickerGroup {
   articles: NewsCardData[];
 }
 
+export interface TickerMeta {
+  ko: string;        // 엔비디아
+  sector: string;    // Technology
+  sectorKo: string;  // 기술주
+  themes: string[];  // ["AI", "반도체", "데이터센터"]
+}
+
+export type TickerCategories = Record<string, TickerMeta>;

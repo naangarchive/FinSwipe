@@ -148,7 +148,7 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
   const [marketLoading, setMarketLoading] = useState(true);
   const [marketError, setMarketError] = useState(false);
 
-  // 피드백 (QA 1번)
+  // 피드백
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
   const shownAt = useRef<number>(Date.now());
 

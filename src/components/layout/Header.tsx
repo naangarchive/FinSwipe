@@ -10,7 +10,6 @@ import back from '../../assets/ic_back.svg';
 import menu from "../../assets/ic_menu.svg";
 import close from "../../assets/ic_close.svg";
 import logout from "../../assets/ic_logout.svg";
-import nav01 from "../../assets/ic_nav_01.svg";
 import nav02 from "../../assets/ic_nav_02.svg";
 import nav03 from "../../assets/ic_nav_03.svg";
 
@@ -133,14 +132,6 @@ export const Header = ({ type, title, ticker }: HeaderProps) => {
 
               {/* 메뉴 아이템 */}
               <nav className="flex flex-col px-4 py-4 gap-1 flex-1">
-                <Link
-                  to="/like"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-800 hover:bg-gray-50 transition-colors"
-                >
-                  <img src={nav01} alt="관심종목" />
-                  <span className="text-base font-medium">관심종목</span>
-                </Link>
                 <Link
                   to="/terms"
                   onClick={() => setMenuOpen(false)}

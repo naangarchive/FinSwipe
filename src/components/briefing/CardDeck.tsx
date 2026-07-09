@@ -5,7 +5,7 @@ import { DigestCard } from "../briefing/DigestCard";
 import { track } from "../../lib/analytics/ga";
 // 타입
 import type { PanInfo } from "motion/react";
-import type { NewsCardData } from "../../types/news";
+import type { NewsCardData, TickerCategories, TickerMeta } from "../../types/news";
 import type { BriefingResponse } from "../../types/digest";
 import type { QuizQuestion } from "../../types/quiz";
 // 유틸리티
@@ -16,7 +16,6 @@ import { getSourceName } from "../../utils/format";
 interface CardDeckProps {
   articles: NewsCardData[];
   onVerticalSwipe: (direction: 1 | -1) => void;
-  focusArticleId?: string | null;
   onFlipChange?: (flipped: boolean) => void;
   feedSource?: "cold_start" | "behavior" | null;
 }
@@ -95,7 +94,7 @@ const getSentimentText = (label: string, score: number) => {
   return '중립';
 };
 
-function FrontFace({ article }: { article: NewsCardData }) {
+function FrontFace({ article, meta }: { article: NewsCardData, meta?: TickerMeta }) {
   const label = (article.sentimentLabel ?? 'neutral') as keyof typeof THEME;
   const t = THEME[label] ?? THEME.neutral;
   const ticker = article.tickers?.[0] ?? '';
@@ -113,9 +112,22 @@ function FrontFace({ article }: { article: NewsCardData }) {
       <div className="flex items-start justify-between px-4 pt-4 shrink-0">
         <div>
           <p className="text-2xl font-black leading-none" style={{ color: t.ink }}>{ticker}</p>
-          {article.tickerNames?.[0] && (
-            <p className="text-[11px] mt-1" style={{ color: t.soft }}>{article.tickerNames[0].corp}</p>
-          )}
+          <div className="flex items-center gap-1 mt-1">
+            {article.tickerNames?.[0] && (
+              <p className="text-[11px]" style={{ color: t.soft }}>{article.tickerNames[0].corp}</p>
+            )}
+            · 
+            {meta && meta.themes?.slice(0, 2).map(th => (
+              <span
+                key={th}
+                className="text-[9px] font-medium px-1.5 py-0.5 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.45)', color: t.soft }}
+              >
+                {th}
+              </span>
+            ))}
+          </div>
+          
         </div>
         {article.currentPrice != null && (
           <div className="text-right">
@@ -247,12 +259,13 @@ function BackFace({ article }: { article: NewsCardData }) {
   );
 }
 
-export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChange, feedSource }: CardDeckProps) => {
+export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }: CardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [gone, setGone] = useState(false);
-  const [goneDir, setGoneDir] = useState(0);
+  const [goneDir, setGoneDir] = useState(0);  
+  const [tickerMeta, setTickerMeta] = useState<TickerCategories>({});
 
   // 다이제스트 상태
   const [digestData, setDigestData] = useState<BriefingResponse | null>(null);
@@ -301,6 +314,36 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
       flushEvents();
     };
   }, []);
+
+  useEffect(() => {
+    if (!articles.length) return;
+
+    // 카드에 뜬 종목 중복 제거
+    const tickers = [...new Set(
+      articles.map(a => a.tickers?.[0]).filter((t): t is string => !!t)
+    )];
+    if (!tickers.length) return;
+
+    let cancelled = false;
+    const fetchMeta = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/news/ticker-categories?tickers=${tickers.join(',')}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!res.ok) throw new Error('티커 카테고리 조회 실패');
+        const data: TickerCategories = await res.json();
+        if (!cancelled) setTickerMeta(data);
+      } catch (err) {
+        console.error('티커 카테고리 조회 실패:', err);
+        // 실패해도 카드는 정상 표시 (태그만 안 뜸)
+      }
+    };
+    fetchMeta();
+
+    return () => { cancelled = true; };
+  }, [articles]);
 
   useEffect(() => {
     if (!currentArticle) return;
@@ -354,17 +397,6 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     setGone(false);
     setDragX(0);
   }, [currentIndex]);
-
-  // focusArticleId로 해당 기사 인덱스로 이동
-  useEffect(() => {
-    if (focusArticleId && articles.length > 0) {
-      const idx = articles.findIndex(a => a.id === focusArticleId);
-      if (idx !== -1) {
-        setCurrentIndex(idx);
-        sessionStorage.removeItem('pendingFocusArticleId');
-      }
-    }
-  }, [focusArticleId, articles]);
 
   useEffect(() => {
 
@@ -618,7 +650,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
           className="relative w-full h-full"
           style={{ transformStyle: 'preserve-3d' }}
         >
-          <FrontFace article={currentArticle} />
+          <FrontFace article={currentArticle} meta={tickerMeta[currentArticle.tickers?.[0] ?? '']}/>
           <BackFace article={currentArticle} />
         </motion.div>
       </motion.div>
