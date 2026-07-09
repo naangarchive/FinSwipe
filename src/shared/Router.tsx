@@ -5,7 +5,6 @@ import { usePageView } from "../hooks/usePageView.ts";
 import { Home } from '../pages/Home.tsx';
 import { NewsDetail } from "../pages/NewsDetail.tsx";
 import { Login } from "../pages/Login.tsx";
-import { Like } from "../pages/Like.tsx";
 import { Terms } from "../pages/Terms.tsx";
 import { Privacy } from "../pages/Privacy.tsx";
 import { NotFound } from "../pages/NotFound.tsx";
@@ -17,51 +16,17 @@ const PageViewTracker = () => {
 
 const Router = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [hasTickers, setHasTickers] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('accessToken');      
-      
-      if (!token) {
-        setIsLoggedIn(false);
-        return;
-      }
-
-      setIsLoggedIn(true);
-
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-    
-        const response = await fetch(`${API_BASE_URL}/user/tickers`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          // 티커가 하나라도 있으면 true, 없으면 false
-          setHasTickers(Array.isArray(data.tickers) ? data.tickers.length > 0 : false);
-        } else {
-          setHasTickers(false);
-        }
-      } catch (error){
-        console.error("관심 종목 설정 여부 확인 실패:", error);
-      setHasTickers(false);
-      }      
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken');
+      setIsLoggedIn(!!token);
     };
 
     checkAuth();
 
-    // 로그아웃
-    const handleLogout = () => {
-      setIsLoggedIn(false);
-      setHasTickers(null);
-    };
-
-    const handleLogin = () => {
-      checkAuth();
-    };
+    const handleLogout = () => setIsLoggedIn(false);
+    const handleLogin = () => setIsLoggedIn(true);
 
     window.addEventListener('logout', handleLogout);
     window.addEventListener('login', handleLogin);
@@ -80,19 +45,8 @@ const Router = () => {
       <Routes>
         {/* 로그인 */}
         <Route path="/login" element={!isLoggedIn ? <Login /> : <Navigate to="/" />} />
-        {/* 관심 종목 설정 */}
-        <Route path="/like" element={isLoggedIn ? <Like /> : <Navigate to="/login" />} />
         {/* 메인 홈 */}
-        <Route 
-          path="/" 
-          element={
-            !isLoggedIn 
-              ? <Navigate to="/login" /> 
-              : hasTickers === false 
-                ? <Navigate to="/like" /> 
-                : <Home />
-          } 
-        />        
+        <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
         {/* 이용약관 */}
