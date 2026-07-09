@@ -162,7 +162,9 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
         const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/market-briefing`);
         if (!res.ok) throw new Error('market-briefing 실패');
         const data: MarketBriefingResponse = await res.json();
-        if (!cancelled) setMarket(data);
+        if (!cancelled) 
+          setMarket(data);
+          shownAt.current = Date.now(); 
       } catch (err) {
         console.error('시장 브리핑 조회 실패:', err);
         if (!cancelled) setMarketError(true);
@@ -183,9 +185,19 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
     // GA4 지표
     track("insight_feedback", { helpful, cards_consumed: articlesCount, dwell_ms });
 
-    // TODO: 백엔드 신호 전송 (insight_card_pref / insight_card_dwell_ms)
-    // 엔드포인트 확정되면 여기에 fetch 추가
-  };
+    // 백엔드 신호 전송 (insight_card_pref / insight_card_dwell_ms)
+    const accessToken = localStorage.getItem('accessToken');
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/events/batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          events: [{ type: helpful ? 'insight_helpful' : 'insight_not_helpful', dwell_ms }],
+        }),
+      }).catch(err => console.error('인사이트 피드백 전송 실패:', err));
+    };
 
   const mood = market?.mood ?? '혼조';
   const moodColor = mood === '강세' ? C.green : mood === '약세' ? C.red : C.amber;
