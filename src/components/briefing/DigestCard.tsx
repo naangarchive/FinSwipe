@@ -573,11 +573,11 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
         {feedback ? (
           <div className="flex items-center gap-2">
             <p className="text-[11px] text-gray-400 flex-1">
-              {feedback === 'helpful' ? '👍 의견 감사해요!' : '👎 의견 감사해요.'}
+              {feedback === 'helpful' ? '의견 감사해요!' : '의견 감사해요.'}
             </p>
             <button
               onClick={onReset}
-              className="px-3 py-1.5 rounded-full text-[11px] text-gray-400 border border-gray-200 bg-white shrink-0"
+              className="px-3 py-1.5 rounded-full text-[11px] text-gray-400 border border-gray-200 bg-white shrink-0 opacity-80 hover:opacity-100"
             >
               처음부터 다시보기
             </button>
@@ -588,16 +588,16 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
             <div className="flex gap-1.5 ml-auto">
               <button
                 onClick={() => handleFeedback(true)}
-                className="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-colors"
+                className="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-colors opacity-80 hover:opacity-100"
                 style={{ color: C.green, borderColor: `${C.green}44`, background: C.greenBg }}
               >
-                👍 도움됐어요
+                도움됐어요
               </button>
               <button
                 onClick={() => handleFeedback(false)}
-                className="px-3 py-1.5 rounded-full text-[11px] font-semibold border border-gray-200 bg-gray-50 text-gray-500"
+                className="px-3 py-1.5 rounded-full text-[11px] font-semibold border border-gray-200 bg-gray-50 text-gray-500 opacity-80 hover:opacity-100"
               >
-                👎 별로예요
+                별로예요
               </button>
             </div>
           </div>
