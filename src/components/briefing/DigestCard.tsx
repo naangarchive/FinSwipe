@@ -152,19 +152,23 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
   const shownAt = useRef<number>(Date.now());
 
-  // market-briefing 자체 fetch (로그인 불필요)
+  // read-briefing
   useEffect(() => {
     let cancelled = false;
     const fetchMarket = async () => {
       setMarketLoading(true);
       setMarketError(false);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/market-briefing`);
-        if (!res.ok) throw new Error('market-briefing 실패');
+        const accessToken = localStorage.getItem('accessToken');   // ← 추가
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/news/read-briefing`, {
+          headers: { Authorization: `Bearer ${accessToken}` },      // ← 추가
+        });
+        if (!res.ok) throw new Error('read-briefing 실패');
         const data: MarketBriefingResponse = await res.json();
-        if (!cancelled) 
+        if (!cancelled) {
           setMarket(data);
-          shownAt.current = Date.now(); 
+          shownAt.current = Date.now();
+        }
       } catch (err) {
         console.error('시장 브리핑 조회 실패:', err);
         if (!cancelled) setMarketError(true);
@@ -176,7 +180,7 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
     return () => { cancelled = true; };
   }, []);
 
-  // 피드백 전송 (QA 1번)
+  // 피드백 전송
   const handleFeedback = (helpful: boolean) => {
     if (feedback) return;
     const dwell_ms = Date.now() - shownAt.current;
