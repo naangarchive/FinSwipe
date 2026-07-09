@@ -502,25 +502,21 @@ export const CardDeck = ({ articles, onVerticalSwipe, focusArticleId, onFlipChan
     }
 
     if (digestData) {
-      return (
-        <div className="relative w-full h-full max-h-175">
-          <DigestCard briefing={digestData} articlesCount={articles.length} />
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-            <button
-              onClick={() => {
-                track("feed_reset", {});
-                setCurrentIndex(0);
-                setDigestData(null);
-                setDigestError(false);
-              }}
-              className="px-4 py-2 text-xs text-gray-400 border border-gray-200 rounded-full bg-white/80"
-            >
-              처음부터 다시보기
-            </button>
-          </div>
-        </div>
-      );
-    }
+    return (
+      <div className="relative w-full h-full max-h-175">
+        <DigestCard
+          briefing={digestData}
+          articlesCount={articles.length}
+          onReset={() => {
+            track("feed_reset", {});
+            setCurrentIndex(0);
+            setDigestData(null);
+            setDigestError(false);
+          }}
+        />
+      </div>
+    );
+  }
 
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-400">

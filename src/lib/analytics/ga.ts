@@ -77,6 +77,13 @@ type GA4EventMap = {
     dwell_ms: number; // 스킵 전 체류 시간
   };
   feed_personalized: { source: "cold_start" | "behavior" };
+
+  // ──
+  insight_feedback: {
+    helpful: boolean;        // 도움됐어요=true / 별로예요=false
+    cards_consumed: number;  // 이 브리핑까지 소비한 카드 수
+    dwell_ms: number;        // 브리핑 카드 체류 시간
+  };
 };
 
 // ── 초기화 ──────────────────────────────────────────────────
