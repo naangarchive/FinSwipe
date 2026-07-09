@@ -49,10 +49,9 @@ const Router = () => {
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
         {/* 뉴스 상세 */}
         <Route path="/detail/:id" element={isLoggedIn ? <NewsDetail /> : <Navigate to="/login" />} />
-        {/* 이용약관 */}
-        <Route path="/terms" element={isLoggedIn ? <Terms /> : <Navigate to="/login" />} />
-        {/* 개인정보처리방침 */}
-        <Route path="/privacy" element={isLoggedIn ? <Privacy /> : <Navigate to="/login" />} />
+        {/* 이용약관 (로그인 불필요 — 가입 전 동의를 위해 열람 가능해야 함) */}
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} /> 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
