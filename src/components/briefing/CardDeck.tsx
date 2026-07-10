@@ -588,11 +588,34 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
 
       {nextArticle && (
         <motion.div
-          className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100"
-          animate={{ scale: 0.97, y: 10 }}
+          className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100 overflow-hidden"
+          animate={{
+            scale: 0.97 + Math.max(likeOpacity, dislikeOpacity) * 0.03,
+            y: 10 - Math.max(likeOpacity, dislikeOpacity) * 10,
+          }}
+          transition={{ type: 'tween', duration: 0.1 }}
           style={{ zIndex: 1 }}
-        />
+        >
+          {/* 관심있음 — 좌측 (카드가 오른쪽으로 밀릴 때 드러남) */}
+          {likeOpacity > 0.05 && (
+            <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4" style={{ opacity: likeOpacity }}>
+              <div className="flex flex-col items-center gap-2" style={{ transform: `scale(${0.85 + likeOpacity * 0.15})` }}>
+                <p className="text-base font-black text-emerald-600 whitespace-nowrap">관심있음</p>
+              </div>
+            </div>
+          )}
+
+          {/* 관심없음 — 우측 (카드가 왼쪽으로 밀릴 때 드러남) */}
+          {dislikeOpacity > 0.05 && (
+            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-4" style={{ opacity: dislikeOpacity }}>
+              <div className="flex flex-col items-center gap-2" style={{ transform: `scale(${0.85 + dislikeOpacity * 0.15})` }}>
+                <p className="text-base font-black text-slate-500 whitespace-nowrap">관심없음</p>
+              </div>
+            </div>
+          )}
+        </motion.div>
       )}
+
       <motion.div
         className="absolute w-full left-0 inset-x-4 top-0 bottom-4 cursor-grab active:cursor-grabbing select-none"
         style={{ zIndex: 2, perspective: 1300 }}
@@ -625,7 +648,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
           }
         }}
       >
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {likeOpacity > 0.1 && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: likeOpacity }} exit={{ opacity: 0 }}
@@ -642,7 +665,7 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
               관심없음
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
 
         <motion.div
           animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -653,6 +676,23 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
           <FrontFace article={currentArticle} meta={tickerMeta[currentArticle.tickers?.[0] ?? '']}/>
           <BackFace article={currentArticle} />
         </motion.div>
+
+        {/* ↓ 스와이프 방향 테두리 (카드 위에 겹침, 클릭 통과) */}
+        {(likeOpacity > 0.05 || dislikeOpacity > 0.05) && (
+          <div
+            className="absolute inset-0 rounded-[28px] pointer-events-none z-20"
+            style={{
+              border: `3px solid ${
+                likeOpacity > dislikeOpacity
+                  ? `rgba(16, 185, 129, ${likeOpacity})`
+                  : `rgba(100, 116, 139, ${dislikeOpacity})`
+              }`,
+              boxShadow: likeOpacity > dislikeOpacity
+                ? `0 0 24px rgba(16, 185, 129, ${likeOpacity * 0.5}), inset 0 0 32px rgba(16, 185, 129, ${likeOpacity * 0.15})`
+                : `0 0 24px rgba(100, 116, 139, ${dislikeOpacity * 0.5}), inset 0 0 32px rgba(100, 116, 139, ${dislikeOpacity * 0.15})`,
+            }}
+          />
+        )}
       </motion.div>
     </div>
   );
