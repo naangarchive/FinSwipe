@@ -249,7 +249,7 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 12, x: "-50%" }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-8 left-1/2 z-50 w-[min(340px,calc(100%-2rem))]"
+            className="fixed top-8 left-1/2 z-50 w-[min(340px,calc(100%-2rem))]"
           >
           <div className="rounded-2xl px-4 py-3.5 bg-gray-900 shadow-xl">
             <div className="flex items-start gap-2 mb-2.5">
