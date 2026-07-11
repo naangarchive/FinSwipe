@@ -1,5 +1,5 @@
 import { useState, useEffect, useId, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { QuizCard } from "../briefing/QuizCard";
 import { DigestCard } from "../briefing/DigestCard";
 import { track } from "../../lib/analytics/ga";
