@@ -588,31 +588,29 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
 
     <div className="relative w-full h-full max-h-175">
 
-      {nextArticle && (
-        <motion.div
-          className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100 overflow-hidden"
-          animate={{ scale: 0.97, y: 10 }}
-          style={{ zIndex: 1 }}
-        >
-          {/* 관심있음 — 좌측 (카드가 오른쪽으로 밀릴 때 드러남) */}
-          {showLike && (
-            <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4" style={{ opacity: gone ? 1 : likeOpacity }}>
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-base font-black text-emerald-600 whitespace-nowrap">관심있음</p>
-              </div>
+      <motion.div
+        className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100 overflow-hidden"
+        animate={{ scale: 0.97, y: 10 }}
+        style={{ zIndex: 1 }}
+      >
+        {/* 관심있음 — 좌측 (카드가 오른쪽으로 밀릴 때 드러남) */}
+        {showLike && (
+          <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4" style={{ opacity: gone ? 1 : likeOpacity }}>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-base font-black text-emerald-600 whitespace-nowrap">관심있음</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 관심없음 — 우측 (카드가 왼쪽으로 밀릴 때 드러남) */}
-          {showDislike && (
-            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-4" style={{ opacity: gone ? 1 : dislikeOpacity }}>
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-base font-black text-slate-500 whitespace-nowrap">관심없음</p>
-              </div>
+        {/* 관심없음 — 우측 (카드가 왼쪽으로 밀릴 때 드러남) */}
+        {showDislike && (
+          <div className="absolute right-0 top-0 bottom-0 flex items-center pr-4" style={{ opacity: gone ? 1 : dislikeOpacity }}>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-base font-black text-slate-500 whitespace-nowrap">관심없음</p>
             </div>
-          )}
-        </motion.div>
-      )}
+          </div>
+        )}
+      </motion.div>
 
       <motion.div
         className="absolute w-full left-0 inset-x-4 top-0 bottom-4 cursor-grab active:cursor-grabbing select-none"
