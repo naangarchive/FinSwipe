@@ -566,6 +566,8 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
 
   const likeOpacity = Math.min(Math.max(dragX / 100, 0), 1);
   const dislikeOpacity = Math.min(Math.max(-dragX / 100, 0), 1);
+  const showLike = likeOpacity > 0.05 || (gone && goneDir === 1);
+  const showDislike = dislikeOpacity > 0.05 || (gone && goneDir === -1);
 
   // 퀴즈 카드 표시
   if (showQuiz && quizCard) {
@@ -589,26 +591,22 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
       {nextArticle && (
         <motion.div
           className="absolute inset-x-4 top-0 bottom-4 rounded-[28px] bg-white border border-gray-100 overflow-hidden"
-          animate={{
-            scale: 0.97 + Math.max(likeOpacity, dislikeOpacity) * 0.03,
-            y: 10 - Math.max(likeOpacity, dislikeOpacity) * 10,
-          }}
-          transition={{ type: 'tween', duration: 0.1 }}
+          animate={{ scale: 0.97, y: 10 }}
           style={{ zIndex: 1 }}
         >
           {/* 관심있음 — 좌측 (카드가 오른쪽으로 밀릴 때 드러남) */}
-          {likeOpacity > 0.05 && (
-            <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4" style={{ opacity: likeOpacity }}>
-              <div className="flex flex-col items-center gap-2" style={{ transform: `scale(${0.85 + likeOpacity * 0.15})` }}>
+          {showLike && (
+            <div className="absolute left-0 top-0 bottom-0 flex items-center pl-4" style={{ opacity: gone ? 1 : likeOpacity }}>
+              <div className="flex flex-col items-center gap-2">
                 <p className="text-base font-black text-emerald-600 whitespace-nowrap">관심있음</p>
               </div>
             </div>
           )}
 
           {/* 관심없음 — 우측 (카드가 왼쪽으로 밀릴 때 드러남) */}
-          {dislikeOpacity > 0.05 && (
-            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-4" style={{ opacity: dislikeOpacity }}>
-              <div className="flex flex-col items-center gap-2" style={{ transform: `scale(${0.85 + dislikeOpacity * 0.15})` }}>
+          {showDislike && (
+            <div className="absolute right-0 top-0 bottom-0 flex items-center pr-4" style={{ opacity: gone ? 1 : dislikeOpacity }}>
+              <div className="flex flex-col items-center gap-2">
                 <p className="text-base font-black text-slate-500 whitespace-nowrap">관심없음</p>
               </div>
             </div>
@@ -648,24 +646,6 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
           }
         }}
       >
-        {/* <AnimatePresence>
-          {likeOpacity > 0.1 && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: likeOpacity }} exit={{ opacity: 0 }}
-              className="absolute top-6 right-5 border-2 border-emerald-500 text-emerald-500 font-bold text-base px-3 py-1 rounded-lg rotate-12 z-10 bg-white/80"
-            >
-              관심있음
-            </motion.div>
-          )}
-          {dislikeOpacity > 0.1 && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: dislikeOpacity }} exit={{ opacity: 0 }}
-              className="absolute top-6 left-5 border-2 border-gray-400 text-gray-500 font-bold text-base px-3 py-1 rounded-lg -rotate-12 z-10 bg-white/80"
-            >
-              관심없음
-            </motion.div>
-          )}
-        </AnimatePresence> */}
 
         <motion.div
           animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -678,21 +658,21 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
         </motion.div>
 
         {/* ↓ 스와이프 방향 테두리 (카드 위에 겹침, 클릭 통과) */}
-        {(likeOpacity > 0.05 || dislikeOpacity > 0.05) && (
-          <div
-            className="absolute inset-0 rounded-[28px] pointer-events-none z-20"
-            style={{
-              border: `3px solid ${
-                likeOpacity > dislikeOpacity
-                  ? `rgba(16, 185, 129, ${likeOpacity})`
-                  : `rgba(100, 116, 139, ${dislikeOpacity})`
-              }`,
-              boxShadow: likeOpacity > dislikeOpacity
-                ? `0 0 24px rgba(16, 185, 129, ${likeOpacity * 0.5}), inset 0 0 32px rgba(16, 185, 129, ${likeOpacity * 0.15})`
-                : `0 0 24px rgba(100, 116, 139, ${dislikeOpacity * 0.5}), inset 0 0 32px rgba(100, 116, 139, ${dislikeOpacity * 0.15})`,
-            }}
-          />
-        )}
+        {(likeOpacity > 0.05 || dislikeOpacity > 0.05 || gone) && (
+        <div
+          className="absolute inset-0 rounded-[28px] pointer-events-none z-20"
+          style={{
+            border: `3px solid ${
+              (likeOpacity >= dislikeOpacity && (likeOpacity > 0.05 || (gone && goneDir === 1)))
+                ? `rgba(16, 185, 129, ${gone ? 1 : likeOpacity})`
+                : `rgba(100, 116, 139, ${gone ? 1 : dislikeOpacity})`
+            }`,
+            boxShadow: (likeOpacity >= dislikeOpacity && (likeOpacity > 0.05 || (gone && goneDir === 1)))
+              ? `0 0 24px rgba(16, 185, 129, ${(gone ? 1 : likeOpacity) * 0.5}), inset 0 0 32px rgba(16, 185, 129, ${(gone ? 1 : likeOpacity) * 0.15})`
+              : `0 0 24px rgba(100, 116, 139, ${(gone ? 1 : dislikeOpacity) * 0.5}), inset 0 0 32px rgba(100, 116, 139, ${(gone ? 1 : dislikeOpacity) * 0.15})`,
+          }}
+        />
+      )}
       </motion.div>
     </div>
   );
