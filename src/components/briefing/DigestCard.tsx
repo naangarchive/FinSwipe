@@ -7,7 +7,6 @@ import type {
   EventCategory,
   SentimentTrendPoint,
 } from "../../types/market-briefing";
-import { motion } from "framer-motion";
 
 interface DigestCardProps {
   briefing: BriefingResponse;
@@ -28,8 +27,6 @@ const C = {
   amberBg: '#fffbeb',
   surface: '#f8fafc',
 };
-
-const SURVEY_CODE = '58';
 
 const CAT_KO: Record<string, string> = {
   earnings: '실적', guidance: '가이던스', analyst: '애널리스트', product: '제품',
@@ -155,10 +152,6 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
   const [feedback, setFeedback] = useState<'helpful' | 'not_helpful' | null>(null);
   const shownAt = useRef<number>(Date.now());
 
-  // 설문조사 - 추후삭제
-  const [showToast, setShowToast] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   // read-briefing
   useEffect(() => {
     let cancelled = false;
@@ -210,23 +203,6 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
       }).catch(err => console.error('인사이트 피드백 전송 실패:', err));
     };
 
-  // 설문조사 - 추후삭제
-  useEffect(() => {
-    if (!market) return;
-    const t = setTimeout(() => setShowToast(true), 600);
-    return () => clearTimeout(t);
-  }, [market]);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(SURVEY_CODE);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // 클립보드 실패 시 무시
-    }
-  };
-
   const mood = market?.mood ?? '혼조';
   const moodColor = mood === '강세' ? C.green : mood === '약세' ? C.red : C.amber;
   const moodBg = mood === '강세' ? C.greenBg : mood === '약세' ? C.redBg : C.amberBg;
@@ -242,46 +218,6 @@ export function DigestCard({ briefing, articlesCount, onReset }: DigestCardProps
 
   return (
     <div className="absolute left-0 w-full inset-x-4 top-0 bottom-4 rounded-[28px] overflow-hidden flex flex-col bg-white border border-gray-100 shadow-sm">
-      {/* 설문조사 코드 토스트팝업 - 추후삭제 */}
-      {showToast && (
-        <motion.div
-            initial={{ opacity: 0, y: 12, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: 12, x: "-50%" }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-8 left-1/2 z-50 w-[min(340px,calc(100%-2rem))]"
-          >
-          <div className="rounded-2xl px-4 py-3.5 bg-gray-900 shadow-xl">
-            <div className="flex items-start gap-2 mb-2.5">
-              <div className="flex-1">
-                <p className="text-[11px] font-semibold text-white mb-0.5">
-                  오늘의 브리핑까지 완주했어요!
-                </p>
-                <p className="text-[10px] text-gray-400">설문에 아래 코드를 입력해주세요</p>
-              </div>
-              <button
-                onClick={() => setShowToast(false)}
-                className="shrink-0 w-5 h-5 flex items-center justify-center text-gray-500 text-base leading-none"
-              >
-                ×
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 rounded-xl px-3 py-2.5 bg-white/10">
-                <p className="text-lg font-black text-white tracking-[0.2em] tabular-nums text-center">
-                  {SURVEY_CODE}
-                </p>
-              </div>
-              <button
-                onClick={handleCopy}
-                className="shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white"
-              >
-                {copied ? '복사됨' : '복사'}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* 상단 포인트 바 */}
       <div className="h-1 shrink-0" style={{ background: moodColor }} />
