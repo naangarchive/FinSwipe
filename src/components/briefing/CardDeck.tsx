@@ -421,7 +421,6 @@ export const CardDeck = ({ articles, onVerticalSwipe, onFlipChange, feedSource }
   }, [currentIndex]);
 
   const currentArticle = articles[currentIndex];
-  const nextArticle = articles[currentIndex + 1];
 
   // 카드 소진 시 digest API 호출
   useEffect(() => {
